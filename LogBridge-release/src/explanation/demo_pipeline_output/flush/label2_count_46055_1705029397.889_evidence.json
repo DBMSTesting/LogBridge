@@ -1,0 +1,123 @@
+{
+  "window_id": "label2:count:46055:1705029397.889",
+  "predicted_class": "flush",
+  "context": {
+    "label_file": "label2",
+    "window_start": "2024-01-12T03:16:37.889000+00:00",
+    "window_end": "2024-01-12T03:16:37.895000+00:00",
+    "log_count_original": 100,
+    "log_count": 7,
+    "anomaly_types": [
+      "flush"
+    ],
+    "top_templates_raw": [
+      {
+        "template_id": "cluster_3",
+        "count": 48,
+        "text": "2024-01-12 <*> <*> INFO <*> - <*> <*> <*> bytes, total memory size: <*> bytes."
+      },
+      {
+        "template_id": "cluster_5",
+        "count": 11,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.logdispatcher.LogDispatcher$LogDispatcherThread:360 - <*> startIndex: <*> maxIndex: <*> pendingEntries size: <*> bufferedEntries size: <*>"
+      },
+      {
+        "template_id": "cluster_8",
+        "count": 10,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.logdispatcher.LogDispatcher:163 - <*> Push a log to the queue, where the queue length is <*>"
+      },
+      {
+        "template_id": "cluster_2",
+        "count": 9,
+        "text": "2024-01-12 <*> [AsyncDataNodeIoTConsensusServiceClientPool-selector-30] INFO org.apache.iotdb.consensus.iot.logdispatcher.IndexController:77 - update index from currentIndex <*> to <*> for file prefix <*> in <*>"
+      },
+      {
+        "template_id": "cluster_1",
+        "count": 9,
+        "text": "2024-01-12 <*> <*> INFO <*> - DataRegion[2] : accumulated a <*> <*> <*> <*> from <*> <*> <*>"
+      }
+    ],
+    "top_entities": [
+      {
+        "entity": "data_regions",
+        "count": 7
+      },
+      {
+        "entity": "nodes",
+        "count": 7
+      },
+      {
+        "entity": "consensus_groups",
+        "count": 7
+      },
+      {
+        "entity": "statistical_entities",
+        "count": 7
+      },
+      {
+        "entity": "node_ips",
+        "count": 7
+      },
+      {
+        "entity": "thread",
+        "count": 7
+      },
+      {
+        "entity": "extra_threads",
+        "count": 7
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "rank": 1,
+      "score": 0.83407062292099,
+      "id": "CFG-seq_memtable_flush_interval_in_ms",
+      "title": "Config: seq_memtable_flush_interval_in_ms",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 2,
+      "score": 0.8333612084388733,
+      "id": "CFG-seq_memtable_flush_check_interval_in_ms",
+      "title": "Config: seq_memtable_flush_check_interval_in_ms",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 3,
+      "score": 0.8329479694366455,
+      "id": "CFG-avg_series_point_number_threshold",
+      "title": "Config: avg_series_point_number_threshold",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 4,
+      "score": 0.8328490853309631,
+      "id": "CFG-unseq_memtable_flush_interval_in_ms",
+      "title": "Config: unseq_memtable_flush_interval_in_ms",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 5,
+      "score": 0.8288477659225464,
+      "id": "CFG-unseq_memtable_flush_check_interval_in_ms",
+      "title": "Config: unseq_memtable_flush_check_interval_in_ms",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    }
+  ]
+}

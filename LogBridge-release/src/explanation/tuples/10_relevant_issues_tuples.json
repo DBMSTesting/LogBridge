@@ -1,0 +1,267 @@
+{
+  "source": "10_explanation_data/issues/relevant_issues.json",
+  "doc_type": "GitHub-Issues",
+  "extraction_method": "claude-llm-manual",
+  "notes": "29 issues triaged for anomaly relevance; 14 with actionable root_cause+fix included below. Skipped: pure UI/doc bugs, unresolved tickets without verified fix, code-comprehension questions.",
+  "schema": {
+    "id": "unique tuple id",
+    "title": "issue title (translated where needed)",
+    "symptom": "observable signs / error messages",
+    "root_cause": "verified or strongly-suggested cause",
+    "fix": "actions confirmed by maintainers / OP",
+    "config_params": "related IoTDB config",
+    "anomaly_classes": "subset of {compaction, export, flush, full_cpu, full_memory, network_bandwidth2}",
+    "iotdb_subsystems": "subset of {Flush, Compaction, MemTable, TsFile, WAL, Memory, Network, Compression, Query, Cache, Procedure, Schema, GC, Election}",
+    "version": "issue's reported version + fix version (when known)",
+    "tags": "free-form retrieval tags",
+    "issue_url": "GitHub URL for traceability"
+  },
+  "tuples": [
+    {
+      "id": "ISS-15182",
+      "title": "1.2.2 WAL accumulation after JVM hang/restart eventually rejects writes",
+      "symptom": "After JVM hung-restart, WAL files keep accumulating; manual FLUSH only frees 2 of 3 DataNodes; one DataNode never rotates; writes eventually rejected with WAL throttle",
+      "root_cause": "1.2.2 has WAL cleanup bug where MemTable→WAL accounting drifts after abrupt restart; the WAL position pointer may stay above accumulated files indefinitely",
+      "fix": [
+        "Upgrade to 1.3.3+ — newer versions reportedly fix this WAL accounting bug",
+        "Do NOT delete WAL files by mtime — risks data loss because each WAL maps to MemTables that may not have flushed",
+        "Workaround pre-upgrade: FLUSH ON CLUSTER then restart; check WAL count drops",
+        "Monitor wal file_count breakdown per node to detect drift early"
+      ],
+      "config_params": ["wal_throttle_threshold", "wal_buffer_size"],
+      "anomaly_classes": ["flush"],
+      "iotdb_subsystems": ["WAL", "Flush"],
+      "version": "1.2.2 (bug), fixed in 1.3.3+",
+      "tags": ["wal backlog", "jvm hang recovery", "write rejected"],
+      "issue_url": "https://github.com/apache/iotdb/issues/15182"
+    },
+    {
+      "id": "ISS-11428",
+      "title": "Pipe (TsFile sync) loses ~800/96000 data points under heavy insert load (1.1.1)",
+      "symptom": "Cloud pipe receiver missing TsFiles; edge node logs `Waiting for tsfile <name> close, retry 10/10` and `FileNotFoundException: ...tsfile.resource, maybe the tsfile is not closed yet`",
+      "root_cause": "1.1.1 pipe-sync module had race between TsFile sealing and resource-file generation under high write rate; sealed TsFile not yet ready when sync scanner picks it up",
+      "fix": [
+        "Upgrade to 1.2.2+ — sync module rebuilt in 1.2",
+        "Use the new Data-Sync pipe (1.2.x docs) instead of legacy pipe-sink"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["flush", "network_bandwidth2"],
+      "iotdb_subsystems": ["TsFile", "Network", "Flush"],
+      "version": "1.1.1 (bug), fixed by sync rewrite in 1.2.0+",
+      "tags": ["pipe sync", "tsfile not closed", "data loss"],
+      "issue_url": "https://github.com/apache/iotdb/issues/11428"
+    },
+    {
+      "id": "ISS-11600",
+      "title": "0.13.2 endless 'Running compaction task failed' on missing .cross temp files",
+      "symptom": "Continuous error: `[Compaction] compaction for target file [file is .../1699280358127-1-0-1.cross, status: UNCLOSED]`; file does not actually exist on disk; queries report slow log",
+      "root_cause": "Compaction recorded a target .cross temp file in memory state but failed mid-flight; when recovery scans, the file is gone (it was supposed to be deleted on failure) but state still references it — task keeps retrying",
+      "fix": [
+        "Manually run FLUSH then MERGE — clears stale compaction state",
+        "Upgrade if possible (>=1.0 likely fixed); 0.13.x unmaintained",
+        "Inspect log_datanode_all.log for `CompactionExceptionHandler` to see root failure that led to orphan .cross",
+        "Note: path with digits broke direct upgrade for this user — backup and fresh install if upgrade blocked"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["compaction"],
+      "iotdb_subsystems": ["Compaction", "TsFile"],
+      "version": "0.13.2 (bug)",
+      "tags": ["compaction stuck", "orphan .cross", "tsfile state mismatch"],
+      "issue_url": "https://github.com/apache/iotdb/issues/11600"
+    },
+    {
+      "id": "ISS-10809",
+      "title": "FileReaderManager leaks file streams after compaction (deleted files held open)",
+      "symptom": "After compactions complete, the deleted source TsFiles still hold open file descriptors; `lsof` shows growing list of (deleted) entries; may eventually hit 'too many open files'",
+      "root_cause": "FileReaderManager caches readers per file; on compaction the source file is deleted but the cached reader is not invalidated/closed",
+      "fix": [
+        "Upgrade to 1.3.x+ — fixed by PR https://github.com/apache/iotdb/pull/10688",
+        "Workaround: restart DataNode periodically to release held descriptors",
+        "Raise ulimit -n 65535 (see TS-HC-2) to delay symptom"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["compaction"],
+      "iotdb_subsystems": ["TsFile", "Compaction", "Cache"],
+      "version": "<=1.3.0-SNAPSHOT (bug), fixed in 1.3.x via PR #10688",
+      "tags": ["file leak", "deleted file held open", "fd leak"],
+      "issue_url": "https://github.com/apache/iotdb/issues/10809"
+    },
+    {
+      "id": "ISS-11967",
+      "title": "export-tsfile.sh fails with `301: not enough memory` on whole-DB query",
+      "symptom": "`Cannot dump result because: 301: There is not enough memory to execute current fragment instance, current remaining free memory is 86MB, estimated memory usage 257MB`",
+      "root_cause": "Default 4G heap leaves only 4G × datanode_memory_proportion(30%) × chunk_timeseriesmeta_free_memory_proportion(20%) ≈ 240MB for query execution; SELECT * over many series exceeds it",
+      "fix": [
+        "Increase IOTDB_HEAP_SIZE to >4.2G so 4.2G × 30% × 20% > 257MB",
+        "Or raise datanode_memory_proportion (more heap → queries)",
+        "Or reduce timeseries in query (slimit N)",
+        "Or add ALIGN BY DEVICE to bound memory to per-device level",
+        "Or split export into multiple smaller queries"
+      ],
+      "config_params": ["IOTDB_HEAP_SIZE", "datanode_memory_proportion", "chunk_timeseriesmeta_free_memory_proportion"],
+      "anomaly_classes": ["full_memory", "export"],
+      "iotdb_subsystems": ["Memory", "Query"],
+      "version": "1.2.2 (default config); applies to all 1.x",
+      "tags": ["export oom", "error 301", "memory proportion"],
+      "issue_url": "https://github.com/apache/iotdb/issues/11967"
+    },
+    {
+      "id": "ISS-16873",
+      "title": "Docker: MEMORY_SIZE in iotdb-env.sh ignored → OOM during compaction recovery",
+      "symptom": "Standalone Docker IoTDB 1.3.2/2.0.5 ignores MEMORY_SIZE=4G in env; at startup `recovering sequence inner compaction` keeps growing container memory until OOM; RPC port 6667 never opens",
+      "root_cause": "iotdb-env.sh MEMORY_SIZE assignments are not propagated inside the container; Docker entry-point reads JVM flags from environment variables instead",
+      "fix": [
+        "Set JVM heap via docker-compose environment variables:",
+        "  - IOTDB_JMX_OPTS=-Xms4G -Xmx4G -XX:MaxDirectMemorySize=1G",
+        "  - CONFIGNODE_JMX_OPTS=-Xms1G -Xmx1G -XX:MaxDirectMemorySize=256M",
+        "Verify with: docker exec <c> jmap -heap <pid>",
+        "Setting docker-compose memory: 6G limit alone doesn't help — need JVM-level caps"
+      ],
+      "config_params": ["IOTDB_JMX_OPTS", "CONFIGNODE_JMX_OPTS"],
+      "anomaly_classes": ["full_memory", "compaction"],
+      "iotdb_subsystems": ["Memory", "Compaction", "GC"],
+      "version": "1.3.2 and 2.0.5 Docker deployments",
+      "tags": ["docker memory", "compaction recovery oom", "env var override"],
+      "issue_url": "https://github.com/apache/iotdb/issues/16873"
+    },
+    {
+      "id": "ISS-10481",
+      "title": "load tsfile with onSuccess=none fails with `Status code: 700` and `301 null`",
+      "symptom": "LOAD '/path/to.tsfile' onSuccess=none verify=false → executeStatement failed status 700; subsequent retries cascade into `501 root.ss has already` and `301 null` memory errors",
+      "root_cause": "Likely combo: large TsFile load attempts to allocate memory above limit (error 301); failed metadata partial-commit blocks subsequent create-database (501)",
+      "fix": [
+        "Restart DataNode to clear partial state, then retry LOAD with smaller TsFiles",
+        "Verify heap headroom before LOAD (see ISS-11967 memory tuning)",
+        "If verify=false caused metadata mismatch: use verify=true on next LOAD"
+      ],
+      "config_params": ["IOTDB_HEAP_SIZE", "datanode_memory_proportion"],
+      "anomaly_classes": ["full_memory", "compaction"],
+      "iotdb_subsystems": ["TsFile", "Memory", "Schema"],
+      "version": "1.2.0-SNAPSHOT",
+      "tags": ["load tsfile", "error 301", "error 700", "memory"],
+      "issue_url": "https://github.com/apache/iotdb/issues/10481"
+    },
+    {
+      "id": "ISS-8403",
+      "title": "Cluster insert with batchSize=10000 throws `RatisRequestFailedException: Ratis request failed`",
+      "symptom": "Insert Tablet with rowCount=10000 → `605: RatisRequestFailedException`; same code with rowCount=1000 succeeds; problem appears near completion of 3.77M-row batch insert",
+      "root_cause": "Ratis consensus restricts single write request to ≤4MB; batchSize=10000 with 30 fields × 100 measurements produces ~6MB per request, exceeding limit",
+      "fix": [
+        "Raise data_region_ratis_log_appender_buffer_size_max to 16777216 (16MB) in iotdb-common.properties on ConfigNode",
+        "Restart cluster",
+        "Or reduce client batch size to keep request <4MB",
+        "Estimate per-request size: rowCount × fields × avg_value_size + overhead"
+      ],
+      "config_params": ["data_region_ratis_log_appender_buffer_size_max"],
+      "anomaly_classes": ["network_bandwidth2"],
+      "iotdb_subsystems": ["Election", "Network"],
+      "version": "1.0.0 (default 4MB limit)",
+      "tags": ["ratis", "log appender buffer", "cluster write failure", "batch size"],
+      "issue_url": "https://github.com/apache/iotdb/issues/8403"
+    },
+    {
+      "id": "ISS-10882",
+      "title": "Docker: ConfigNodeClient `The current node may have been down TEndPoint(ip:iotdb)`",
+      "symptom": "Standalone Docker startup logs repeat `ConfigNodeClient:255 - The current node may have been down TEndPoint(ip:iotdb, port:10710), try next node`",
+      "root_cause": "Hostname `iotdb` used in cn_target_config_node_list is the docker service name, not the in-container hostname; container resolves `iotdb` to itself but networking expects the docker service alias",
+      "fix": [
+        "Rename docker-compose service to something other than `iotdb` (e.g. `iotdb-service`)",
+        "Ensure cn_internal_address / dn_internal_address / cn_target_config_node_list / dn_target_config_node_list use this hostname consistently",
+        "Verify with `docker exec <container> ping iotdb-service`"
+      ],
+      "config_params": ["cn_internal_address", "dn_internal_address", "cn_target_config_node_list", "dn_target_config_node_list"],
+      "anomaly_classes": ["network_bandwidth2"],
+      "iotdb_subsystems": ["Network", "Election"],
+      "version": "1.1.2-standalone Docker",
+      "tags": ["docker hostname", "config node discovery", "naming conflict"],
+      "issue_url": "https://github.com/apache/iotdb/issues/10882"
+    },
+    {
+      "id": "ISS-17022",
+      "title": "destroy-datanode.sh destroyed wrong node, cluster down; need to recover TsFiles into new cluster",
+      "symptom": "After running `destroy-datanode.sh -h <failed_node>` from a healthy node, the executing node ALSO went offline; cluster cannot start; tried to LOAD original sequence/unsequence dir into fresh cluster but errors",
+      "root_cause": "destroy-datanode is destructive and clears node state; running it from another node may leave both in inconsistent partition state",
+      "fix": [
+        "Recovery: build fresh cluster, then LOAD TsFiles — but do NOT place TsFiles inside the new cluster's iotdb data directory; put them in an external path and LOAD from there",
+        "destroy-datanode removes the targeted node from partition table; the originating node is not supposed to be affected, but in 1.3.2 this caused cascade — recommend taking backup before any destroy command",
+        "For HA: never run destroy from a 3-node-just-lost-1 cluster without quorum verification first"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["network_bandwidth2", "compaction"],
+      "iotdb_subsystems": ["Schema", "TsFile", "Election"],
+      "version": "1.3.2",
+      "tags": ["destroy-datanode", "recovery", "tsfile load", "cluster disaster"],
+      "issue_url": "https://github.com/apache/iotdb/issues/17022"
+    },
+    {
+      "id": "ISS-12492",
+      "title": "Windows: `TThreadPoolServer$WorkerProcess - Connection reset` then CLI/workbench can't connect; MQTT receives but stops writing",
+      "symptom": "Sudden error in logs: `TTransportException: java.net.SocketException: Connection reset`; CLI hangs, JDBC fails; MQTT keeps receiving but data not persisted; REST API still works for reads",
+      "root_cause": "On Windows cmd window, mouse click triggers QuickEdit-mode pause — entire IoTDB process freezes; existing TCP connections reset by OS while process suspended; MQTT (separate listener) may keep accepting but write path blocked",
+      "fix": [
+        "Disable QuickEdit mode on cmd window: right-click title bar → Properties → Options → uncheck Quick Edit Mode",
+        "Better: run IoTDB as a Windows service (sbin\\windows\\install-datanode.bat)",
+        "Or run via PowerShell which does not have this pause behaviour",
+        "For Linux: run with nohup or systemd to avoid TTY pause issues"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["network_bandwidth2", "flush"],
+      "iotdb_subsystems": ["Network", "MemTable"],
+      "version": "1.3.0 / 1.3.1 Windows one-click",
+      "tags": ["windows cmd quickedit", "process freeze", "connection reset", "mqtt"],
+      "issue_url": "https://github.com/apache/iotdb/issues/12492"
+    },
+    {
+      "id": "ISS-8327-8361",
+      "title": "1.0 'ORDER BY time DESC LIMIT N' times out for N>1 on 1M-row query",
+      "symptom": "`select * from root... order by time desc limit 1` works (~50ms); same query with `limit 2` (or more) → `301: FragmentInstance ... is aborted by timeout`; only ASC order works",
+      "root_cause": "1.0 desc query plan likely scans full series in reverse without proper TsFile metadata pruning when N>1 (descending iterator costs O(N) chunk loads in worst case)",
+      "fix": [
+        "Upgrade past 1.0 (later versions added desc scan optimization)",
+        "Workaround: SELECT * FROM x WHERE time > <past_threshold> ORDER BY time DESC LIMIT N to give the planner a time-pruning hint",
+        "Or use multi-step: get max time via separate query, then range query backwards"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["full_cpu", "full_memory"],
+      "iotdb_subsystems": ["Query", "TsFile"],
+      "version": "1.0.0 (bug)",
+      "tags": ["order by desc", "limit timeout", "fragment timeout"],
+      "issue_url": "https://github.com/apache/iotdb/issues/8327"
+    },
+    {
+      "id": "ISS-12451-13151",
+      "title": "Docker on Kylin/Rocky Linux hangs at 'Checking whether the ports are already occupied'",
+      "symptom": "IoTDB Docker startup blocks at the port-check step; no progress; no error; affects Kylin OS and Rocky Linux distros",
+      "root_cause": "Startup script uses nc/lsof for port checks; on minimal OS images these tools missing or block on certain kernel configs",
+      "fix": [
+        "Install nc and lsof in the base image before starting IoTDB",
+        "If using prebuilt image: rebuild with `RUN yum install -y nc lsof` (Rocky) or apt-get equivalent for Kylin variants",
+        "Skip the port check by running the startup script with `-skip-port-check` (if available) or comment out the check section"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["network_bandwidth2"],
+      "iotdb_subsystems": ["Network"],
+      "version": "all docker variants",
+      "tags": ["docker startup hang", "port check", "kylin", "rocky linux"],
+      "issue_url": "https://github.com/apache/iotdb/issues/12451"
+    },
+    {
+      "id": "ISS-17030",
+      "title": "[Open/recurring] Partition Bug 2.0.5/2.0.6 — SELECT with time range returns empty even though data exists",
+      "symptom": "Same SELECT with explicit time-range WHERE returns empty; widening the WHERE returns data; problem reproducible across 2.0.5 and 2.0.6",
+      "root_cause": "Suspected partition routing bug — query plan may dispatch to wrong DataRegion for the time range; not yet root-caused upstream",
+      "fix": [
+        "Status: actively triaged by maintainer @CRZbulabula; no merged fix yet (as of 2026-05)",
+        "Workaround 1: omit time WHERE and post-filter client-side",
+        "Workaround 2: rephrase as `time >= start - 1ms AND time < end + 1ms`",
+        "Workaround 3: rollback to 2.0.4 if not too disruptive"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["compaction"],
+      "iotdb_subsystems": ["Query", "Schema", "TsFile"],
+      "version": "2.0.5, 2.0.6 (unresolved)",
+      "tags": ["partition routing", "empty result", "time range query"],
+      "issue_url": "https://github.com/apache/iotdb/issues/17030"
+    }
+  ]
+}

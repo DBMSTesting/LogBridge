@@ -1,0 +1,123 @@
+{
+  "window_id": "label4:count:26667:1705029224.339",
+  "predicted_class": "network_bandwidth2",
+  "context": {
+    "label_file": "label4",
+    "window_start": "2024-01-12T03:13:44.339000+00:00",
+    "window_end": "2024-01-12T03:13:44.347000+00:00",
+    "log_count_original": 100,
+    "log_count": 9,
+    "anomaly_types": [
+      "network_bandwidth2"
+    ],
+    "top_templates_raw": [
+      {
+        "template_id": "cluster_3",
+        "count": 38,
+        "text": "2024-01-12 <*> <*> INFO <*> - <*> <*> <*> bytes, total memory size: <*> bytes."
+      },
+      {
+        "template_id": "cluster_5",
+        "count": 12,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.logdispatcher.LogDispatcher$LogDispatcherThread:360 - <*> startIndex: <*> maxIndex: <*> pendingEntries size: <*> bufferedEntries size: <*>"
+      },
+      {
+        "template_id": "cluster_9",
+        "count": 12,
+        "text": "2024-01-12 <*> <*> INFO <*> - DataRegion[1] : accumulated a <*> <*> <*> <*> from <*> <*> <*>"
+      },
+      {
+        "template_id": "cluster_2",
+        "count": 10,
+        "text": "2024-01-12 <*> [AsyncDataNodeIoTConsensusServiceClientPool-selector-30] INFO org.apache.iotdb.consensus.iot.logdispatcher.IndexController:77 - update index from currentIndex <*> to <*> for file prefix <*> in <*>"
+      },
+      {
+        "template_id": "cluster_4",
+        "count": 9,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.logdispatcher.LogDispatcher$LogDispatcherThread:456 - Send <*> <*> to ConsensusGroup:TConsensusGroupId(type:DataRegion, <*>"
+      }
+    ],
+    "top_entities": [
+      {
+        "entity": "data_regions",
+        "count": 9
+      },
+      {
+        "entity": "nodes",
+        "count": 9
+      },
+      {
+        "entity": "consensus_groups",
+        "count": 9
+      },
+      {
+        "entity": "statistical_entities",
+        "count": 9
+      },
+      {
+        "entity": "node_ips",
+        "count": 9
+      },
+      {
+        "entity": "thread",
+        "count": 9
+      },
+      {
+        "entity": "extra_threads",
+        "count": 9
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "rank": 1,
+      "score": 0.8683614730834961,
+      "id": "ISS-10882",
+      "title": "Docker: ConfigNodeClient `The current node may have been down TEndPoint(ip:iotdb)`",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "source": "10_explanation_data/issues/relevant_issues.json"
+    },
+    {
+      "rank": 2,
+      "score": 0.8462772965431213,
+      "id": "ISS-8403",
+      "title": "Cluster insert with batchSize=10000 throws `RatisRequestFailedException: Ratis request failed`",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "source": "10_explanation_data/issues/relevant_issues.json"
+    },
+    {
+      "rank": 3,
+      "score": 0.8441377878189087,
+      "id": "CFG-schema_region_consensus_protocol_class",
+      "title": "Config: schema_region_consensus_protocol_class",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 4,
+      "score": 0.8426021933555603,
+      "id": "CFG-data_region_consensus_protocol_class",
+      "title": "Config: data_region_consensus_protocol_class",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 5,
+      "score": 0.8335514664649963,
+      "id": "CFG-config_node_consensus_protocol_class",
+      "title": "Config: config_node_consensus_protocol_class",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    }
+  ]
+}

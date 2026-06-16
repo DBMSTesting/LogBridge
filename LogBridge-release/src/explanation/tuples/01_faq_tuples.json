@@ -1,0 +1,223 @@
+{
+  "source": "docs_curated/FAQ/Frequently-asked-questions.md",
+  "doc_type": "FAQ",
+  "extraction_method": "claude-llm-manual",
+  "schema": {
+    "id": "unique tuple id",
+    "title": "original Q",
+    "symptom": "observable signs / error messages",
+    "root_cause": "underlying technical reason",
+    "fix": "list of actions to take",
+    "config_params": "list of related IoTDB config parameters",
+    "anomaly_classes": "subset of {compaction, export, flush, full_cpu, full_memory, network_bandwidth2}",
+    "iotdb_subsystems": "subset of {Flush, Compaction, MemTable, TsFile, WAL, Memory, Network, Compression, Query, Cache, Procedure, Schema, GC, Election}",
+    "version": "applicable IoTDB versions",
+    "tags": "free-form tags for retrieval"
+  },
+  "tuples": [
+    {
+      "id": "FAQ-1.10",
+      "title": "How to deal with estimated out of memory errors?",
+      "symptom": "Error 301: There is not enough memory to execute current fragment instance, current remaining free memory is X, estimated memory usage for current fragment instance is Y",
+      "root_cause": "Memory available for query execution (heap × datanode_memory_proportion × chunk_timeseriesmeta_free_memory_proportion = 30% × 20% = 6% of heap) is less than the query's estimated execution memory requirement. By default a 4G heap leaves only ~240MB for query execution.",
+      "fix": [
+        "Increase IOTDB_HEAP_SIZE to >4.2G (so 4.2G * 30% * 20% > 257MB)",
+        "Tune datanode_memory_proportion to allocate more memory to queries",
+        "Reduce the number of exported time series in the query",
+        "Add 'slimit N' clause to limit number of timeseries per query",
+        "Add 'align by device' to reduce memory to single-device level"
+      ],
+      "config_params": ["IOTDB_HEAP_SIZE", "datanode_memory_proportion", "chunk_timeseriesmeta_free_memory_proportion"],
+      "anomaly_classes": ["full_memory"],
+      "iotdb_subsystems": ["Memory", "Query"],
+      "version": "all",
+      "tags": ["OOM", "query", "memory tuning", "error 301"]
+    },
+    {
+      "id": "FAQ-1.9",
+      "title": "How to handle IndexOutOfBoundsException from GrpcLogAppender?",
+      "symptom": "IndexOutOfBoundsException from org.apache.ratis.grpc.server.GrpcLogAppender stack trace",
+      "root_cause": "Internal Ratis 2.4.1 library bug; reported to Ratis community.",
+      "fix": ["No action needed; does not affect data writes/reads. Will be fixed in future IoTDB releases that upgrade Ratis."],
+      "config_params": [],
+      "anomaly_classes": ["network_bandwidth2"],
+      "iotdb_subsystems": ["Network", "WAL"],
+      "version": "all (Ratis 2.4.1 versions)",
+      "tags": ["false alarm", "Ratis", "grpc", "log appender"]
+    },
+    {
+      "id": "FAQ-1.11",
+      "title": "Resolving lsof Issues in IoTDB Deployment",
+      "symptom": "lsof command missing or version incompatibility during IoTDB deployment",
+      "root_cause": "Wrong lsof version or missing /bin/lsof binary; IoTDB uses lsof for port detection at startup.",
+      "fix": [
+        "Backup existing lsof: sudo mv /bin/lsof /bin/lsof.bak",
+        "Install RPM package matching OS version: sudo rpm -ivh lsof-4.87-6.el7.x86_64.rpm",
+        "Verify with: lsof -v",
+        "Create symlink if needed: sudo ln -sf $(which lsof) /bin/lsof"
+      ],
+      "config_params": [],
+      "anomaly_classes": [],
+      "iotdb_subsystems": [],
+      "version": "all (deployment-time)",
+      "tags": ["deployment", "lsof", "prerequisite"]
+    },
+    {
+      "id": "FAQ-2.1.1",
+      "title": "Failed to start ConfigNode for the first time",
+      "symptom": "ConfigNode startup fails on first deployment",
+      "root_cause": "Possible: (1) data/confignode directory not empty, (2) port conflict, (3) cn_seed_config_node misconfigured (should point to itself on first start), (4) consensus/replica config mismatch with seed node.",
+      "fix": [
+        "Clear data/confignode directory on first start",
+        "Check IP+Port availability",
+        "Set cn_seed_config_node to self on first ConfigNode of cluster",
+        "Ensure consensus protocol and replica number match across ConfigNodes"
+      ],
+      "config_params": ["cn_seed_config_node", "consensus_protocol", "schema_replication_factor", "data_replication_factor"],
+      "anomaly_classes": [],
+      "iotdb_subsystems": ["Election", "Procedure"],
+      "version": "all",
+      "tags": ["startup", "ConfigNode", "cluster setup"]
+    },
+    {
+      "id": "FAQ-2.1.2",
+      "title": "ConfigNode started but missing from 'show cluster'",
+      "symptom": "ConfigNode process is alive but does not appear in 'show cluster' output",
+      "root_cause": "cn_seed_config_node points to itself instead of an existing ConfigNode, accidentally creating a separate new cluster.",
+      "fix": ["Stop the ConfigNode and reconfigure cn_seed_config_node to point to an existing alive ConfigNode in the target cluster."],
+      "config_params": ["cn_seed_config_node"],
+      "anomaly_classes": [],
+      "iotdb_subsystems": ["Election", "Procedure"],
+      "version": "all",
+      "tags": ["cluster join", "split-brain"]
+    },
+    {
+      "id": "FAQ-2.1.3",
+      "title": "Failed to start DataNode for the first time",
+      "symptom": "DataNode startup fails, possibly with 'Reject DataNode restart' error",
+      "root_cause": "Possible: (1) data/datanode directory not empty, (2) port conflict, (3) dn_seed_config_node not pointing to alive ConfigNode.",
+      "fix": [
+        "Clear data/datanode directory on first start",
+        "Check IP+Port not conflicting",
+        "Ensure dn_seed_config_node points to alive ConfigNode"
+      ],
+      "config_params": ["dn_seed_config_node"],
+      "anomaly_classes": [],
+      "iotdb_subsystems": ["Procedure"],
+      "version": "all",
+      "tags": ["startup", "DataNode", "cluster setup"]
+    },
+    {
+      "id": "FAQ-2.1.4",
+      "title": "Failed to remove DataNode",
+      "symptom": "remove-datanode.sh fails or DataNode stuck in 'Removing' state",
+      "root_cause": "Possible: (1) wrong arguments to remove-datanode.sh, (2) cluster has too few DataNodes (must be > max(schema_replication_factor, data_replication_factor)), (3) region migration failure leaves DataNode in 'Removing' state forever.",
+      "fix": [
+        "Use correct arguments: rpcIp:rpcPort and dataNodeId only",
+        "Ensure number of alive DataNodes > max replica factor before removal",
+        "Run 'set system status to running' to bring stuck DataNode back",
+        "Use 'migrate region from datanodeId1 to datanodeId2' to migrate stuck regions",
+        "Future: use 'remove-datanode.sh -f' for forced removal (discards failed regions)"
+      ],
+      "config_params": ["schema_replication_factor", "data_replication_factor"],
+      "anomaly_classes": ["network_bandwidth2"],
+      "iotdb_subsystems": ["Procedure", "Election"],
+      "version": "all",
+      "tags": ["DataNode removal", "region migration", "stuck state"]
+    },
+    {
+      "id": "FAQ-2.1.5",
+      "title": "Whether down DataNode can be removed",
+      "symptom": "DataNode is down/unreachable, need to remove it permanently",
+      "root_cause": "Down DataNode removal requires data redundancy. If replica factor = 1, data on that node has no copy elsewhere.",
+      "fix": ["Only possible if schema/data replica factor > 1. Future: 'remove-datanode.sh -f' option."],
+      "config_params": ["schema_replication_factor", "data_replication_factor"],
+      "anomaly_classes": [],
+      "iotdb_subsystems": ["Procedure"],
+      "version": "all",
+      "tags": ["DataNode removal", "data redundancy"]
+    },
+    {
+      "id": "FAQ-2.1.6",
+      "title": "Upgrade from 0.13 to 1.0",
+      "symptom": "Need to migrate data from IoTDB 0.13 to 1.0",
+      "root_cause": "File structure differs significantly between 0.13 and 1.0; data directories not directly compatible. Default RPC address also changed (0.0.0.0 → 127.0.0.1).",
+      "fix": [
+        "Use LOAD function to load 0.13 data into 1.0 (not direct copy)",
+        "Update RPC address config if accessing from external clients (set rpc_address back to 0.0.0.0 if needed)"
+      ],
+      "config_params": ["rpc_address"],
+      "anomaly_classes": [],
+      "iotdb_subsystems": ["Schema"],
+      "version": "0.13->1.0",
+      "tags": ["upgrade", "migration", "LOAD function"]
+    },
+    {
+      "id": "FAQ-2.2.3",
+      "title": "Cannot restart removed ConfigNode/DataNode with old data dir",
+      "symptom": "Error: 'Reject ConfigNode/DataNode restart. Because there are no corresponding ConfigNode/DataNode (whose nodeId=xx) in the cluster.'",
+      "root_cause": "After removal, the cluster purges the nodeId from its metadata. Restarting with the same data directory creates a stale-id conflict.",
+      "fix": ["Cannot reuse old data directory after node removal. Need to clear data dir and rejoin as a fresh node."],
+      "config_params": [],
+      "anomaly_classes": [],
+      "iotdb_subsystems": ["Procedure"],
+      "version": "all",
+      "tags": ["restart", "node removal", "stale nodeId"]
+    },
+    {
+      "id": "FAQ-2.2.4",
+      "title": "Cannot start node if process not killed",
+      "symptom": "Error: 'The port is already occupied' when running start-confignode.sh/start-datanode.sh after deleting data dir",
+      "root_cause": "The old IoTDB process is still running and holding the RPC port.",
+      "fix": ["Kill PID first: stop-confignode.sh / stop-datanode.sh or kill <PID>, then start."],
+      "config_params": [],
+      "anomaly_classes": [],
+      "iotdb_subsystems": [],
+      "version": "all",
+      "tags": ["port conflict", "zombie process"]
+    },
+    {
+      "id": "FAQ-2.3.1",
+      "title": "'show cluster' failed with 'please check server status'",
+      "symptom": "show cluster command fails; logs mention 'please check server status'",
+      "root_cause": "Possible: (1) more than half ConfigNodes are down (no Raft quorum), (2) the DataNode the client connects to is down.",
+      "fix": [
+        "Ensure > N/2 ConfigNodes are alive (Raft quorum requirement)",
+        "Switch client to connect to an alive DataNode"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["network_bandwidth2"],
+      "iotdb_subsystems": ["Election", "Procedure"],
+      "version": "all",
+      "tags": ["cluster health", "Raft quorum", "show cluster"]
+    },
+    {
+      "id": "FAQ-2.3.2",
+      "title": "How to fix DataNode with broken disk file",
+      "symptom": "DataNode reports disk file corruption / read errors",
+      "root_cause": "Local disk file (TsFile, WAL, schema) corrupted due to disk failure or OS-level error.",
+      "fix": [
+        "Use remove-datanode.sh to remove broken DataNode (data is migrated to alive replicas)",
+        "Replace disk, then add the node back as a fresh DataNode",
+        "Future: Node-Fix tool"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["full_memory"],
+      "iotdb_subsystems": ["TsFile", "WAL"],
+      "version": "all",
+      "tags": ["disk failure", "data recovery", "TsFile corruption"]
+    },
+    {
+      "id": "FAQ-2.3.3",
+      "title": "How to decrease memory usage of ConfigNode/DataNode",
+      "symptom": "Node consuming too much memory; OOM risk; need to fit smaller hardware",
+      "root_cause": "Default JVM heap/off-heap sizes set for typical workloads; may exceed available physical memory on small machines.",
+      "fix": ["Reduce ON_HEAP_MEMORY and OFF_HEAP_MEMORY in conf/confignode-env.sh and conf/datanode-env.sh."],
+      "config_params": ["ON_HEAP_MEMORY", "OFF_HEAP_MEMORY", "IOTDB_HEAP_SIZE"],
+      "anomaly_classes": ["full_memory"],
+      "iotdb_subsystems": ["Memory"],
+      "version": "all",
+      "tags": ["memory tuning", "JVM heap", "resource constraint"]
+    }
+  ]
+}

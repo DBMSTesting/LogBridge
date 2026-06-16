@@ -1,0 +1,123 @@
+{
+  "window_id": "label2:count:31392:1705029263.579",
+  "predicted_class": "compaction",
+  "context": {
+    "label_file": "label2",
+    "window_start": "2024-01-12T03:14:23.579000+00:00",
+    "window_end": "2024-01-12T03:14:23.586000+00:00",
+    "log_count_original": 100,
+    "log_count": 9,
+    "anomaly_types": [
+      "compaction"
+    ],
+    "top_templates_raw": [
+      {
+        "template_id": "cluster_3",
+        "count": 44,
+        "text": "2024-01-12 <*> <*> INFO <*> - <*> <*> <*> bytes, total memory size: <*> bytes."
+      },
+      {
+        "template_id": "cluster_8",
+        "count": 13,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.logdispatcher.LogDispatcher:163 - <*> Push a log to the queue, where the queue length is <*>"
+      },
+      {
+        "template_id": "cluster_5",
+        "count": 10,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.logdispatcher.LogDispatcher$LogDispatcherThread:360 - <*> startIndex: <*> maxIndex: <*> pendingEntries size: <*> bufferedEntries size: <*>"
+      },
+      {
+        "template_id": "cluster_1",
+        "count": 10,
+        "text": "2024-01-12 <*> <*> INFO <*> - DataRegion[2] : accumulated a <*> <*> <*> <*> from <*> <*> <*>"
+      },
+      {
+        "template_id": "cluster_4",
+        "count": 9,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.logdispatcher.LogDispatcher$LogDispatcherThread:456 - Send <*> <*> to ConsensusGroup:TConsensusGroupId(type:DataRegion, <*>"
+      }
+    ],
+    "top_entities": [
+      {
+        "entity": "data_regions",
+        "count": 9
+      },
+      {
+        "entity": "nodes",
+        "count": 9
+      },
+      {
+        "entity": "consensus_groups",
+        "count": 9
+      },
+      {
+        "entity": "statistical_entities",
+        "count": 9
+      },
+      {
+        "entity": "node_ips",
+        "count": 9
+      },
+      {
+        "entity": "thread",
+        "count": 9
+      },
+      {
+        "entity": "extra_threads",
+        "count": 9
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "rank": 1,
+      "score": 0.842130720615387,
+      "id": "TS-HC-4",
+      "title": "print-iotdb-data-dir — visualise data directory layout",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "source": "docs_curated/Tools-System/Health-Check-Tool.md"
+    },
+    {
+      "rank": 2,
+      "score": 0.8394331932067871,
+      "id": "CFG-target_compaction_file_size",
+      "title": "Config: target_compaction_file_size",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 3,
+      "score": 0.8284951448440552,
+      "id": "CFG-compaction_read_throughput_mb_per_sec",
+      "title": "Config: compaction_read_throughput_mb_per_sec",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 4,
+      "score": 0.8228827118873596,
+      "id": "CFG-max_cross_compaction_candidate_file_size",
+      "title": "Config: max_cross_compaction_candidate_file_size",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 5,
+      "score": 0.8214170932769775,
+      "id": "ISS-10809",
+      "title": "FileReaderManager leaks file streams after compaction (deleted files held open)",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "source": "10_explanation_data/issues/relevant_issues.json"
+    }
+  ]
+}

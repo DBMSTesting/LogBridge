@@ -1,0 +1,2763 @@
+{
+  "source": "docs_curated/Reference/Common-Config-Manual.md",
+  "doc_type": "ConfigDictionary",
+  "extraction_method": "regex-parsing",
+  "total_params": 226,
+  "class_distribution": {
+    "network_bandwidth2": 41,
+    "full_memory": 24,
+    "compaction": 34,
+    "flush": 23,
+    "export": 19,
+    "full_cpu": 12
+  },
+  "parameters": [
+    {
+      "name": "config_node_consensus_protocol_class",
+      "description": "Consensus protocol of ConfigNode replicas, only support RatisConsensus",
+      "type": "String",
+      "default": "org.apache.iotdb.consensus.ratis.RatisConsensus",
+      "effective": "Only allowed to be modified in first start up",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election"
+      ]
+    },
+    {
+      "name": "schema_replication_factor",
+      "description": "Schema replication num",
+      "type": "int32",
+      "default": "1",
+      "effective": "Take effect on **new created Databases** after restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema"
+      ]
+    },
+    {
+      "name": "schema_region_consensus_protocol_class",
+      "description": "Consensus protocol of schema replicas，larger than 1 replicas could only use RatisConsensus",
+      "type": "String",
+      "default": "org.apache.iotdb.consensus.ratis.RatisConsensus",
+      "effective": "Only allowed to be modified in first start up",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election",
+        "Schema"
+      ]
+    },
+    {
+      "name": "data_replication_factor",
+      "description": "Data replication num",
+      "type": "int32",
+      "default": "1",
+      "effective": "Take effect on **new created Databases** after restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "data_region_consensus_protocol_class",
+      "description": "Consensus protocol of data replicas，larger than 1 replicas could use IoTConsensus or RatisConsensus",
+      "type": "String",
+      "default": "org.apache.iotdb.consensus.simple.SimpleConsensus",
+      "effective": "Only allowed to be modified in first start up",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election"
+      ]
+    },
+    {
+      "name": "series_slot_num",
+      "description": "Slot num of series partition",
+      "type": "int32",
+      "default": "10000",
+      "effective": "Only allowed to be modified in first start up",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "series_partition_executor_class",
+      "description": "Series partition hash function",
+      "type": "String",
+      "default": "org.apache.iotdb.commons.partition.executor.hash.BKDRHashExecutor",
+      "effective": "Only allowed to be modified in first start up",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "schema_region_group_extension_policy",
+      "description": "The extension policy of SchemaRegionGroup",
+      "type": "string",
+      "default": "AUTO",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema"
+      ]
+    },
+    {
+      "name": "default_schema_region_group_num_per_database",
+      "description": "The number of SchemaRegionGroups that each Database has when using the CUSTOM-SchemaRegionGroup extension policy. The least number of SchemaRegionGroups that each Database has when using the AUTO-SchemaRegionGroup extension policy.",
+      "type": "int",
+      "default": "1",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema"
+      ]
+    },
+    {
+      "name": "schema_region_per_data_node",
+      "description": "The maximum number of SchemaRegion expected to be managed by each DataNode",
+      "type": "double",
+      "default": "1.0",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema"
+      ]
+    },
+    {
+      "name": "data_region_group_extension_policy",
+      "description": "The extension policy of DataRegionGroup",
+      "type": "string",
+      "default": "AUTO",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "default_data_region_group_num_per_database",
+      "description": "The number of DataRegionGroups that each Database has when using the CUSTOM-DataRegionGroup extension policy. The least number of DataRegionGroups that each Database has when using the AUTO-DataRegionGroup extension policy.",
+      "type": "int",
+      "default": "1",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "data_region_per_data_node",
+      "description": "The maximum number of DataRegion expected to be managed by each DataNode",
+      "type": "double",
+      "default": "Half of the CPU cores",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "enable_data_partition_inherit_policy",
+      "description": "Whether to enable the DataPartition inherit policy",
+      "type": "Boolean",
+      "default": "false",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "leader_distribution_policy",
+      "description": "The policy of cluster RegionGroups' leader distribution",
+      "type": "String",
+      "default": "MIN_COST_FLOW",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "enable_auto_leader_balance_for_ratis_consensus",
+      "description": "Whether to enable auto leader balance for Ratis consensus protocol",
+      "type": "Boolean",
+      "default": "false",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election"
+      ]
+    },
+    {
+      "name": "enable_auto_leader_balance_for_iot_consensus",
+      "description": "Whether to enable auto leader balance for IoTConsensus protocol",
+      "type": "Boolean",
+      "default": "true",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election"
+      ]
+    },
+    {
+      "name": "cluster_name",
+      "description": "The name of cluster",
+      "type": "String",
+      "default": "default_cluster",
+      "effective": "Execute SQL in CLI: ```set configuration 'cluster_name'='xxx'``` (xxx is the new cluster name)",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "disk_space_warning_threshold",
+      "description": "Disk remaining threshold",
+      "type": "double(percentage)",
+      "default": "0.05",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "datanode_memory_proportion",
+      "description": "Memory Allocation Ratio: StorageEngine, QueryEngine, SchemaEngine, Consensus, StreamingEngine,  and Free Memory",
+      "type": "Ratio",
+      "default": "3:3:1:1:1:1",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_memory",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election",
+        "Memory",
+        "Query",
+        "Schema"
+      ]
+    },
+    {
+      "name": "schema_memory_proportion",
+      "description": "Schema Memory Allocation Ratio: SchemaRegion, SchemaCache, and PartitionCache.",
+      "type": "Ratio",
+      "default": "5:4:1",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Cache",
+        "Memory",
+        "Schema"
+      ]
+    },
+    {
+      "name": "storage_engine_memory_proportion",
+      "description": "Memory allocation ratio in StorageEngine: Write, Compaction",
+      "type": "Ratio",
+      "default": "8:2",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "compaction",
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Compaction",
+        "Memory"
+      ]
+    },
+    {
+      "name": "write_memory_proportion",
+      "description": "Memory allocation ratio in writing: Memtable, TimePartitionInfo",
+      "type": "Ratio",
+      "default": "19:1",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "flush",
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "MemTable",
+        "Memory"
+      ]
+    },
+    {
+      "name": "concurrent_writing_time_partition",
+      "description": "This config decides how many time partitions in a database can be inserted concurrently <br> For example, your partitionInterval is 86400 and you want to insert data in 5 different days,",
+      "type": "int32",
+      "default": "1",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "primitive_array_size",
+      "description": "primitive array size (length of each array) in array pool",
+      "type": "Int32",
+      "default": "64",
+      "effective": "After restart system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "chunk_metadata_size_proportion",
+      "description": "size proportion for chunk metadata maintains in memory when writing tsfile",
+      "type": "Double",
+      "default": "0.1",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "flush_proportion",
+      "description": "Ratio of write memory for invoking flush disk, 0.4 by default If you have extremely high write load (like batch=1000), it can be set lower than the default value like 0.2",
+      "type": "Double",
+      "default": "0.4",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "export",
+        "flush",
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Flush",
+        "Memory",
+        "Procedure"
+      ]
+    },
+    {
+      "name": "buffered_arrays_memory_proportion",
+      "description": "Ratio of write memory allocated for buffered arrays",
+      "type": "Double",
+      "default": "0.6",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory"
+      ]
+    },
+    {
+      "name": "reject_proportion",
+      "description": "Ratio of write memory for rejecting insertion",
+      "type": "Double",
+      "default": "0.8",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory"
+      ]
+    },
+    {
+      "name": "write_memory_variation_report_proportion",
+      "description": "if memory cost of data region increased more than proportion of allocated memory for write, report to system",
+      "type": "Double",
+      "default": "0.001",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory"
+      ]
+    },
+    {
+      "name": "check_period_when_insert_blocked",
+      "description": "when an inserting is rejected, waiting period (in ms) to check system again",
+      "type": "Int32",
+      "default": "50",
+      "effective": "After restart system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "io_task_queue_size_for_flushing",
+      "description": "size of ioTaskQueue. The default value is 10",
+      "type": "Int32",
+      "default": "10",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "Flush"
+      ]
+    },
+    {
+      "name": "enable_query_memory_estimation",
+      "description": "If true, we will estimate each query's possible memory footprint before executing it and deny it if its estimated memory exceeds current free memory",
+      "type": "bool",
+      "default": "true",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory",
+        "Query"
+      ]
+    },
+    {
+      "name": "partition_cache_size",
+      "description": "The max num of partition info record cached on DataNode.",
+      "type": "Int32",
+      "default": "1000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Cache"
+      ]
+    },
+    {
+      "name": "schema_engine_mode",
+      "description": "Schema engine mode, supporting Memory and PBTree modes; PBTree mode support evict the timeseries schema temporarily not used in memory at runtime, and load it into memory from disk when needed. This parameter must be the same on all DataNodes in one cluster.",
+      "type": "string",
+      "default": "Memory",
+      "effective": "Only allowed to be modified in first start up",
+      "anomaly_classes": [
+        "export",
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory",
+        "Procedure",
+        "Schema"
+      ]
+    },
+    {
+      "name": "mlog_buffer_size",
+      "description": "size of log buffer in each metadata operation plan(in byte)",
+      "type": "int32",
+      "default": "1048576",
+      "effective": "After restart system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "sync_mlog_period_in_ms",
+      "description": "The cycle when metadata log is periodically forced to be written to disk(in milliseconds). If force_mlog_period_in_ms = 0 it means force metadata log to be written to disk after each refreshment",
+      "type": "Int64",
+      "default": "100",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "tag_attribute_flush_interval",
+      "description": "interval num for tag and attribute records when force flushing to disk. When a certain amount of tag and attribute records is reached, they will be force flushed to disk. It is possible to lose at most tag_attribute_flush_interval records",
+      "type": "int32",
+      "default": "1000",
+      "effective": "Only allowed to be modified in first start up",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "Flush"
+      ]
+    },
+    {
+      "name": "tag_attribute_total_size",
+      "description": "The maximum persistence size of tags and attributes of each time series.",
+      "type": "int32",
+      "default": "700",
+      "effective": "Only allowed to be modified in first start up",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "schema_region_device_node_cache_size",
+      "description": "The max num of device node, used for speeding up device query, cached in schemaRegion.",
+      "type": "Int32",
+      "default": "10000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Cache",
+        "Query",
+        "Schema"
+      ]
+    },
+    {
+      "name": "max_measurement_num_of_internal_request",
+      "description": "When there's too many measurements in one create timeseries plan, the plan will be split to several sub plan, with measurement num no more than this param.",
+      "type": "Int32",
+      "default": "10000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "enable_auto_create_schema",
+      "description": "whether auto create the time series when a non-existed time series data comes",
+      "type": "true or false",
+      "default": "true",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema"
+      ]
+    },
+    {
+      "name": "default_storage_group_level",
+      "description": "Database level when creating schema automatically is enabled. For example, if we receives a data point from root.sg0.d1.s2, we will set root.sg0 as the database if database level is 1. (root is level 0)",
+      "type": "integer",
+      "default": "1",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema"
+      ]
+    },
+    {
+      "name": "boolean_string_infer_type",
+      "description": "To which type the values \"true\" and \"false\" should be reslved",
+      "type": "BOOLEAN or TEXT",
+      "default": "BOOLEAN",
+      "effective": "Hot_reload",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "integer_string_infer_type",
+      "description": "To which type an integer string like \"67\" in a query should be resolved",
+      "type": "INT32, INT64, DOUBLE, FLOAT or TEXT",
+      "default": "DOUBLE",
+      "effective": "Hot_reload",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Query"
+      ]
+    },
+    {
+      "name": "floating_string_infer_type",
+      "description": "To which type a floating number string like \"6.7\" in a query should be resolved",
+      "type": "DOUBLE, FLOAT or TEXT",
+      "default": "DOUBLE",
+      "effective": "Hot_reload",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Query"
+      ]
+    },
+    {
+      "name": "nan_string_infer_type",
+      "description": "To which type the value NaN in a query should be resolved",
+      "type": "DOUBLE, FLOAT or TEXT",
+      "default": "FLOAT",
+      "effective": "Hot_reload",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Query"
+      ]
+    },
+    {
+      "name": "default_boolean_encoding",
+      "description": "BOOLEAN encoding when creating schema automatically is enabled",
+      "type": "PLAIN, RLE",
+      "default": "RLE",
+      "effective": "Hot_reload",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Compression",
+        "Schema"
+      ]
+    },
+    {
+      "name": "default_float_encoding",
+      "description": "FLOAT encoding when creating schema automatically is enabled",
+      "type": "PLAIN, RLE, TS\\_2DIFF, GORILLA",
+      "default": "GORILLA",
+      "effective": "Hot_reload",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Compression",
+        "Schema"
+      ]
+    },
+    {
+      "name": "default_double_encoding",
+      "description": "DOUBLE encoding when creating schema automatically is enabled",
+      "type": "PLAIN, RLE, TS\\_2DIFF, GORILLA",
+      "default": "GORILLA",
+      "effective": "Hot_reload",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Compression",
+        "Schema"
+      ]
+    },
+    {
+      "name": "default_text_encoding",
+      "description": "TEXT encoding when creating schema automatically is enabled",
+      "type": "PLAIN",
+      "default": "PLAIN",
+      "effective": "Hot_reload",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Compression",
+        "Schema"
+      ]
+    },
+    {
+      "name": "boolean_compressor",
+      "description": "BOOLEAN compression when creating schema automatically is enabled (Supports from V2.0.6)",
+      "type": "String",
+      "default": "LZ4",
+      "effective": "Hot_reload",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Compression",
+        "Schema"
+      ]
+    },
+    {
+      "name": "float_compressor",
+      "description": "FLOAT compression when creating schema automatically is enabled (Supports from V2.0.6)",
+      "type": "String",
+      "default": "LZ4",
+      "effective": "Hot_reload",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Compression",
+        "Schema"
+      ]
+    },
+    {
+      "name": "double_compressor",
+      "description": "DOUBLE compression when creating schema automatically is enabled (Supports from V2.0.6)",
+      "type": "String",
+      "default": "LZ4",
+      "effective": "Hot_reload",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Compression",
+        "Schema"
+      ]
+    },
+    {
+      "name": "text_compressor",
+      "description": "TEXT/BINARY/BLOB compression when creating schema automatically is enabled (Supports from V2.0.6)",
+      "type": "String",
+      "default": "LZ4",
+      "effective": "Hot_reload",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Compression",
+        "Schema"
+      ]
+    },
+    {
+      "name": "mpp_data_exchange_core_pool_size",
+      "description": "The read consistency level, <br>1. strong(Default, read from the leader replica) <br>2. weak(Read from a random replica)",
+      "type": "string",
+      "default": "strong",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "meta_data_cache_enable",
+      "description": "Whether to cache meta data(BloomFilter, ChunkMetadata and TimeSeriesMetadata) or not.",
+      "type": "Boolean",
+      "default": "true",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Cache",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "enable_last_cache",
+      "description": "Whether to enable LAST cache.",
+      "type": "Boolean",
+      "default": "true",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Cache"
+      ]
+    },
+    {
+      "name": "max_deduplicated_path_num",
+      "description": "allowed max numbers of deduplicated path in one query.",
+      "type": "Int32",
+      "default": "1000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Query"
+      ]
+    },
+    {
+      "name": "mpp_data_exchange_core_pool_size",
+      "description": "Core size of ThreadPool of MPP data exchange",
+      "type": "int32",
+      "default": "10",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_cpu"
+      ],
+      "iotdb_subsystems": [
+        "Concurrency"
+      ]
+    },
+    {
+      "name": "mpp_data_exchange_max_pool_size",
+      "description": "Max size of ThreadPool of MPP data exchange",
+      "type": "int32",
+      "default": "10",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_cpu"
+      ],
+      "iotdb_subsystems": [
+        "Concurrency"
+      ]
+    },
+    {
+      "name": "mpp_data_exchange_keep_alive_time_in_ms",
+      "description": "Max waiting time for MPP data exchange",
+      "type": "long",
+      "default": "1000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "driver_task_execution_time_slice_in_ms",
+      "description": "Maximum execution time of a DriverTask",
+      "type": "int32",
+      "default": "100",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "max_tsblock_size_in_bytes",
+      "description": "Maximum capacity of a TsBlock",
+      "type": "int32",
+      "default": "1024 * 1024 (1 MB)",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "max_tsblock_line_numbers",
+      "description": "Maximum number of lines in a single TsBlock",
+      "type": "int32",
+      "default": "1000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "slow_query_threshold",
+      "description": "Time cost(ms) threshold for slow query.",
+      "type": "Int32",
+      "default": "3000",
+      "effective": "Trigger",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Query"
+      ]
+    },
+    {
+      "name": "query_timeout_threshold",
+      "description": "The max executing time of query. unit: ms",
+      "type": "Int32",
+      "default": "60000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Query"
+      ]
+    },
+    {
+      "name": "max_allowed_concurrent_queries",
+      "description": "The maximum allowed concurrently executing queries.",
+      "type": "Int32",
+      "default": "1000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "query_thread_count",
+      "description": "How many threads can concurrently execute query statement. When <= 0, use CPU core number.",
+      "type": "Int32",
+      "default": "CPU core number",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_cpu"
+      ],
+      "iotdb_subsystems": [
+        "Concurrency",
+        "Query"
+      ]
+    },
+    {
+      "name": "batch_size",
+      "description": "The amount of data iterate each time in server (the number of data strips, that is, the number of different timestamps.)",
+      "type": "Int32",
+      "default": "100000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "sort_buffer_size_in_bytes",
+      "description": "The memory for external sort in sort operator, when the data size is smaller than sort_buffer_size_in_bytes, the sort operator will use in-memory sort.",
+      "type": "long",
+      "default": "1048576(Before V2.0.6) <br> 0(Supports from V2.0.6), if `sort_buffer_size_in_bytes <= 0`, default value will be used, `default value = min(32MB, memory for query operators / query_thread_count / 2)`, if `sort_buffer_size_in_bytes > 0`, the specified value will be used.",
+      "effective": "Hot_reload",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory"
+      ]
+    },
+    {
+      "name": "ttl_check_interval",
+      "description": "The interval of TTL check task in each database. Unit: ms. Default is 2 hours.",
+      "type": "int",
+      "default": "7200000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "max_expired_time",
+      "description": "If a file contains device that has expired for more than this duration, then the file will be settled immediately. Unit: ms.  Default is 1 month.",
+      "type": "int",
+      "default": "2592000000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "expired_data_ratio",
+      "description": "The expired device ratio. If the ratio of expired devices in one file exceeds this value, then expired data of this file will be cleaned by compaction.",
+      "type": "float",
+      "default": "0.3",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "timestamp_precision",
+      "description": "timestamp precision，support ms、us、ns",
+      "type": "String",
+      "default": "ms",
+      "effective": "Only allowed to be modified in first start up",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "tier_ttl_in_ms",
+      "description": "Define the maximum age of data for which each tier is responsible",
+      "type": "long",
+      "default": "-1",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "max_waiting_time_when_insert_blocked",
+      "description": "When the waiting time(in ms) of an inserting exceeds this, throw an exception",
+      "type": "Int32",
+      "default": "10000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "handle_system_error",
+      "description": "What will the system do when unrecoverable error occurs",
+      "type": "String",
+      "default": "CHANGE\\_TO\\_READ\\_ONLY",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "write_memory_variation_report_proportion",
+      "description": "if memory cost of data region increased more than proportion of allocated memory for write, report to system",
+      "type": "Double",
+      "default": "0.001",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory"
+      ]
+    },
+    {
+      "name": "enable_timed_flush_seq_memtable",
+      "description": "whether to enable timed flush sequence memtable",
+      "type": "Boolean",
+      "default": "true",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "Flush",
+        "MemTable"
+      ]
+    },
+    {
+      "name": "seq_memtable_flush_interval_in_ms",
+      "description": "if a memTable's created time is older than current time minus this, the memtable will be flushed to disk",
+      "type": "int32",
+      "default": "10800000",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "Flush",
+        "MemTable"
+      ]
+    },
+    {
+      "name": "seq_memtable_flush_check_interval_in_ms",
+      "description": "the interval to check whether sequence memtables need flushing",
+      "type": "int32",
+      "default": "600000",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "Flush",
+        "MemTable"
+      ]
+    },
+    {
+      "name": "enable_timed_flush_unseq_memtable",
+      "description": "whether to enable timed flush unsequence memtable",
+      "type": "Boolean",
+      "default": "false",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "Flush",
+        "MemTable"
+      ]
+    },
+    {
+      "name": "unseq_memtable_flush_interval_in_ms",
+      "description": "if a memTable's created time is older than current time minus this, the memtable will be flushed to disk",
+      "type": "int32",
+      "default": "600000",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "Flush",
+        "MemTable"
+      ]
+    },
+    {
+      "name": "unseq_memtable_flush_check_interval_in_ms",
+      "description": "the interval to check whether unsequence memtables need flushing",
+      "type": "int32",
+      "default": "30000",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "Flush",
+        "MemTable"
+      ]
+    },
+    {
+      "name": "tvlist_sort_algorithm",
+      "description": "the sort algorithm used in the memtable's TVList",
+      "type": "String",
+      "default": "TIM",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "MemTable"
+      ]
+    },
+    {
+      "name": "avg_series_point_number_threshold",
+      "description": "max average number of point of each series in memtable",
+      "type": "int32",
+      "default": "100000",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "MemTable"
+      ]
+    },
+    {
+      "name": "flush_thread_count",
+      "description": "The thread number used to perform the operation when IoTDB writes data in memory to disk. If the value is less than or equal to 0, then the number of CPU cores installed on the machine is used. The default is 0.",
+      "type": "int32",
+      "default": "0",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "flush",
+        "full_cpu",
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Concurrency",
+        "Flush",
+        "Memory"
+      ]
+    },
+    {
+      "name": "enable_partial_insert",
+      "description": "Whether continue to write other measurements if some measurements are failed in one insertion.",
+      "type": "Boolean",
+      "default": "true",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "recovery_log_interval_in_ms",
+      "description": "the interval to log recover progress of each region when starting iotdb",
+      "type": "Int32",
+      "default": "5000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "device_path_cache_size",
+      "description": "The max size of the device path cache. This cache is for avoiding initialize duplicated device id object in write process",
+      "type": "Int32",
+      "default": "500000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Cache"
+      ]
+    },
+    {
+      "name": "insert_multi_tablet_enable_multithreading_column_threshold",
+      "description": "When the insert plan column count reaches the specified threshold, multi-threading is enabled.",
+      "type": "int32",
+      "default": "10",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_cpu"
+      ],
+      "iotdb_subsystems": [
+        "Concurrency"
+      ]
+    },
+    {
+      "name": "enable_seq_space_compaction",
+      "description": "enable the compaction between sequence files",
+      "type": "Boolean",
+      "default": "true",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "enable_unseq_space_compaction",
+      "description": "enable the compaction between unsequence files",
+      "type": "Boolean",
+      "default": "true",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "enable_cross_space_compaction",
+      "description": "enable the compaction between sequence files and unsequence files",
+      "type": "Boolean",
+      "default": "true",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "enable_auto_repair_compaction",
+      "description": "enable auto repair unsorted file by compaction",
+      "type": "Boolean",
+      "default": "true",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "cross_selector",
+      "description": "the selector of cross space compaction task",
+      "type": "String",
+      "default": "rewrite",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "cross_performer",
+      "description": "the compaction performer of cross space compaction task, Options: read_point, fast",
+      "type": "String",
+      "default": "fast",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "inner_seq_selector",
+      "description": "the task selector of inner sequence space compaction task. Options: size\\_tiered\\_single_\\target,size\\_tiered\\_multi\\_target",
+      "type": "String",
+      "default": "size_tiered_multi_target",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "inner_seq_peformer",
+      "description": "the task performer of inner sequence space compaction task. The options are read_chunk and fast",
+      "type": "String",
+      "default": "fast",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "inner_unseq_selector",
+      "description": "the task selector of inner unsequence space compactionn task. Options: size\\_tiered\\_single_\\target,size\\_tiered\\_multi\\_target",
+      "type": "String",
+      "default": "size_tiered_multi_target",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "inner_unseq_peformer",
+      "description": "the task performer of inner unsequence space compaction task. The options are read_point and fast",
+      "type": "String",
+      "default": "fast",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "compaction_priority",
+      "description": "Priority of compaction task. When it is BALANCE, system executes all types of compaction equally; when it is INNER\\_CROSS, system takes precedence over executing inner space compaction task; when it is CROSS\\_INNER, system takes precedence over executing cross space compaction task",
+      "type": "String",
+      "default": "INNER_CROSS",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "target_compaction_file_size",
+      "description": "This parameter is used in two places: 1. The target tsfile size of inner space compaction. 2. The candidate size of seq tsfile in cross space compaction will be smaller than target_compaction_file_size * 1.5. In most cases, the target file size of cross compaction won't exceed this threshold, and if it does, it will not be much larger than it.",
+      "type": "Int64",
+      "default": "2147483648",
+      "effective": "hot_reload",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "target_chunk_size",
+      "description": "The target chunk size in flushing and compaction.If the size of a timeseries in memtable exceeds this, the data will be flushed to multiple chunks.",
+      "type": "Int64",
+      "default": "1600000",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "compaction",
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "Compaction",
+        "Flush",
+        "MemTable",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "target_chunk_point_num",
+      "description": "The target point nums in one chunk in flushing and compaction.  If the point number of a timeseries in memtable exceeds this, the data will be flushed to multiple chunks.",
+      "type": "Int64",
+      "default": "100000",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "compaction",
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "Compaction",
+        "Flush",
+        "MemTable",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "chunk_size_lower_bound_in_compaction",
+      "description": "If the chunk size is lower than this threshold, it will be deserialized into points, default is 128 byte",
+      "type": "Int64",
+      "default": "128",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "chunk_point_num_lower_bound_in_compaction",
+      "description": "If the chunk point num is lower than this threshold, it will be deserialized into points",
+      "type": "Int64",
+      "default": "100",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "inner_compaction_total_file_num_threshold",
+      "description": "The total file num limit in inner space compaction.",
+      "type": "int32",
+      "default": "100",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "inner_compaction_total_file_size_threshold",
+      "description": "The total file size limit in inner space compaction. Unit: byte",
+      "type": "int64",
+      "default": "10737418240",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "compaction_max_aligned_series_num_in_one_batch",
+      "description": "How many value chunk will be compacted in aligned series compaction",
+      "type": "int32",
+      "default": "10",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "max_level_gap_in_inner_compaction",
+      "description": "The max level gap in inner compaction selection",
+      "type": "int32",
+      "default": "2",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "inner_compaction_candidate_file_num",
+      "description": "The file num requirement when selecting inner space compaction candidate files",
+      "type": "int32",
+      "default": "30",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "max_cross_compaction_candidate_file_num",
+      "description": "The max file when selecting cross space compaction candidate files. At least one unseq file with it's overlapped seq files will be selected even exceeded this number",
+      "type": "int32",
+      "default": "500",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "max_cross_compaction_candidate_file_size",
+      "description": "The max total size when selecting cross space compaction candidate files. At least one unseq file with it's overlapped seq files will be selected even exceeded this number",
+      "type": "Int64",
+      "default": "5368709120",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "compaction_thread_count",
+      "description": "thread num to execute compaction",
+      "type": "int32",
+      "default": "10",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction",
+        "full_cpu"
+      ],
+      "iotdb_subsystems": [
+        "Compaction",
+        "Concurrency"
+      ]
+    },
+    {
+      "name": "compaction_schedule_interval_in_ms",
+      "description": "interval of scheduling compaction",
+      "type": "Int64",
+      "default": "60000",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "compaction_write_throughput_mb_per_sec",
+      "description": "The limit of write throughput merge can reach per second,values less than or equal to 0 means no limit",
+      "type": "int32",
+      "default": "16",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "compaction_read_throughput_mb_per_sec",
+      "description": "The limit of read throughput merge can reach per second, values less than or equal to 0 means no limit",
+      "type": "int32",
+      "default": "0",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "compaction_read_operation_per_sec",
+      "description": "The limit of read operation merge can reach per second, values less than or equal to 0 means no limit",
+      "type": "int32",
+      "default": "0",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "sub_compaction_thread_count",
+      "description": "The number of sub compaction threads to be set up to perform compaction. Currently only works for nonAligned data in cross space compaction and unseq inner space compaction.",
+      "type": "Int32",
+      "default": "4",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction",
+        "full_cpu"
+      ],
+      "iotdb_subsystems": [
+        "Compaction",
+        "Concurrency"
+      ]
+    },
+    {
+      "name": "enable_tsfile_validation",
+      "description": "Verify that TSfiles generated by Flush, Load, and Compaction are correct.",
+      "type": "boolean",
+      "default": "false",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction",
+        "export",
+        "flush"
+      ],
+      "iotdb_subsystems": [
+        "Compaction",
+        "Flush",
+        "Procedure",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "candidate_compaction_task_queue_size",
+      "description": "The size of candidate compaction task queue",
+      "type": "Int32",
+      "default": "50",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "compaction"
+      ],
+      "iotdb_subsystems": [
+        "Compaction"
+      ]
+    },
+    {
+      "name": "compaction_schedule_thread_num",
+      "description": "The number of threads to be set up to select compaction task.",
+      "type": "Int32",
+      "default": "4",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "compaction",
+        "full_cpu"
+      ],
+      "iotdb_subsystems": [
+        "Compaction",
+        "Concurrency"
+      ]
+    },
+    {
+      "name": "wal_mode",
+      "description": "The write mode of wal. For DISABLE mode, the system will disable wal. For SYNC mode, the system will submit wal synchronously, write request will not return until its wal is fsynced to the disk successfully. For ASYNC mode, the system will submit wal asynchronously, write request will return immediately no matter its wal is fsynced to the disk successfully.",
+      "type": "String",
+      "default": "ASYNC",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "max_wal_nodes_num",
+      "description": "Max number of wal nodes, each node corresponds to one wal directory. The default value 0 means the number is determined by the system.",
+      "type": "int32",
+      "default": "0",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "wal_async_mode_fsync_delay_in_ms",
+      "description": "Duration a wal flush operation will wait before calling fsync in the async mode",
+      "type": "int32",
+      "default": "1000",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "flush",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Flush",
+        "WAL"
+      ]
+    },
+    {
+      "name": "wal_sync_mode_fsync_delay_in_ms",
+      "description": "Duration a wal flush operation will wait before calling fsync in the sync mode",
+      "type": "int32",
+      "default": "3",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "flush",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Flush",
+        "WAL"
+      ]
+    },
+    {
+      "name": "wal_buffer_size_in_byte",
+      "description": "Buffer size of each wal node",
+      "type": "int32",
+      "default": "33554432",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "wal_buffer_queue_capacity",
+      "description": "Blocking queue capacity of each wal buffer",
+      "type": "int32",
+      "default": "500",
+      "effective": "After restart system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "wal_file_size_threshold_in_byte",
+      "description": "Size threshold of each wal file",
+      "type": "int32",
+      "default": "31457280",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "wal_min_effective_info_ratio",
+      "description": "Minimum ratio of effective information in wal files",
+      "type": "double",
+      "default": "0.1",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "wal_memtable_snapshot_threshold_in_byte",
+      "description": "MemTable size threshold for triggering MemTable snapshot in wal",
+      "type": "int64",
+      "default": "8388608",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "flush",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "MemTable",
+        "WAL"
+      ]
+    },
+    {
+      "name": "max_wal_memtable_snapshot_num",
+      "description": "MemTable's max snapshot number in wal",
+      "type": "int32",
+      "default": "1",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "flush",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "MemTable",
+        "WAL"
+      ]
+    },
+    {
+      "name": "delete_wal_files_period_in_ms",
+      "description": "The period when outdated wal files are periodically deleted",
+      "type": "int64",
+      "default": "20000",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "group_size_in_byte",
+      "description": "The data size written to the disk per time",
+      "type": "int32",
+      "default": "134217728",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "page_size_in_byte",
+      "description": "The maximum size of a single page written in memory when each column in memory is written (in bytes)",
+      "type": "int32",
+      "default": "65536",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory"
+      ]
+    },
+    {
+      "name": "max_number_of_points_in_page",
+      "description": "The maximum number of data points (timestamps - valued groups) contained in a page",
+      "type": "int32",
+      "default": "10000",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "pattern_matching_threshold",
+      "description": "Max matching time of regex pattern",
+      "type": "int32",
+      "default": "1000000",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "max_degree_of_index_node",
+      "description": "The maximum degree of the metadata index tree (that is, the max number of each node's children)",
+      "type": "int32",
+      "default": "256",
+      "effective": "Only allowed to be modified in first start up",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "max_string_length",
+      "description": "The maximum length of a single string (number of character)",
+      "type": "int32",
+      "default": "128",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "value_encoder",
+      "description": "Encoding type of value column",
+      "type": "Enum String: “TS_2DIFF”,“PLAIN”,“RLE”",
+      "default": "PLAIN",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Compression"
+      ]
+    },
+    {
+      "name": "float_precision",
+      "description": "The precision of the floating point number.(The number of digits after the decimal point)",
+      "type": "int32",
+      "default": "The default is 2 digits. Note: The 32-bit floating point number has a decimal precision of 7 bits, and the 64-bit floating point number has a decimal precision of 15 bits. If the setting is out of the range, it will have no practical significance.",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "compressor",
+      "description": "Data compression method; Time compression method in aligned timeseries",
+      "type": "Enum String : \"UNCOMPRESSED\", \"SNAPPY\", \"LZ4\", \"ZSTD\", \"LZMA2\"",
+      "default": "LZ4",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Compression"
+      ]
+    },
+    {
+      "name": "bloomFilterErrorRate",
+      "description": "The false positive rate of bloom filter in each TsFile. Bloom filter checks whether a given time series is in the tsfile before loading metadata. This can improve the performance of loading metadata and skip the tsfile that doesn't contain specified time series. If you want to learn more about its mechanism, you can refer to: [wiki page of bloom filter](https://en.wikipedia.org/wiki/Bloom_filter).",
+      "type": "float, (0, 1)",
+      "default": "0.05",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "export",
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Procedure",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "authorizer_provider_class",
+      "description": "the class name of the authorization service",
+      "type": "String",
+      "default": "org.apache.iotdb.commons.auth.authorizer.LocalFileAuthorizer",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "iotdb_server_encrypt_decrypt_provider",
+      "description": "The Class for user password encryption",
+      "type": "String",
+      "default": "org.apache.iotdb.commons.security.encrypt.MessageDigestEncrypt",
+      "effective": "Only allowed to be modified in first start up",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "iotdb_server_encrypt_decrypt_provider_parameter",
+      "description": "Parameters used to initialize the user password encryption class",
+      "type": "String",
+      "default": "空",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "author_cache_size",
+      "description": "Cache size of user and role",
+      "type": "int32",
+      "default": "1000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Cache"
+      ]
+    },
+    {
+      "name": "author_cache_expire_time",
+      "description": "Cache expire time of user and role, Unit: minutes",
+      "type": "int32",
+      "default": "30",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Cache"
+      ]
+    },
+    {
+      "name": "udf_initial_byte_array_length_for_memory_control",
+      "description": "Used to estimate the memory usage of text fields in a UDF query. It is recommended to set this value to be slightly larger than the average length of all texts.",
+      "type": "int32",
+      "default": "48",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory",
+        "Query"
+      ]
+    },
+    {
+      "name": "udf_memory_budget_in_mb",
+      "description": "How much memory may be used in ONE UDF query (in MB). The upper limit is 20% of allocated memory for read.",
+      "type": "Float",
+      "default": "30.0",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory",
+        "Query"
+      ]
+    },
+    {
+      "name": "udf_reader_transformer_collector_memory_proportion",
+      "description": "UDF memory allocation ratio for reader, transformer and collector. The parameter form is a : b : c, where a, b, and c are integers.",
+      "type": "String",
+      "default": "1:1:1",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory"
+      ]
+    },
+    {
+      "name": "udf_root_dir",
+      "description": "Root directory of UDF",
+      "type": "String",
+      "default": "ext/udf(Windows:ext\\\\udf)",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "udf_lib_dir",
+      "description": "UDF log and jar file dir",
+      "type": "String",
+      "default": "ext/udf（Windows：ext\\\\udf）",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "trigger_lib_dir",
+      "description": "Trigger JAR file dir",
+      "type": "String",
+      "default": "ext/trigger",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "stateful_trigger_retry_num_when_not_found",
+      "description": "How many times we will retry to found an instance of stateful trigger on DataNodes",
+      "type": "Int32",
+      "default": "3",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "into_operation_buffer_size_in_byte",
+      "description": "When the select-into statement is executed, the maximum memory occupied by the data to be written (unit: Byte)",
+      "type": "int64",
+      "default": "100MB",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Memory"
+      ]
+    },
+    {
+      "name": "select_into_insert_tablet_plan_row_limit",
+      "description": "The maximum number of rows that can be processed in insert-tablet-plan when executing select-into statements. When <= 0, use 10000.",
+      "type": "int32",
+      "default": "10000",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "into_operation_execution_thread_count",
+      "description": "The number of threads in the thread pool that execute insert-tablet tasks",
+      "type": "int32",
+      "default": "2",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_cpu"
+      ],
+      "iotdb_subsystems": [
+        "Concurrency"
+      ]
+    },
+    {
+      "name": "continuous_query_execution_thread",
+      "description": "How many threads will be set up to perform continuous queries",
+      "type": "int32",
+      "default": "max(1, the / 2)",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_cpu"
+      ],
+      "iotdb_subsystems": [
+        "Concurrency",
+        "Query"
+      ]
+    },
+    {
+      "name": "continuous_query_min_every_interval",
+      "description": "Minimum every interval to perform continuous query.",
+      "type": "duration",
+      "default": "1s",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Query"
+      ]
+    },
+    {
+      "name": "data_region_iot_max_log_entries_num_per_batch",
+      "description": "The maximum log entries num in IoTConsensus Batch",
+      "type": "int32",
+      "default": "1024",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election",
+        "WAL"
+      ]
+    },
+    {
+      "name": "data_region_iot_max_size_per_batch",
+      "description": "The maximum size in IoTConsensus Batch",
+      "type": "int32",
+      "default": "16MB",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election"
+      ]
+    },
+    {
+      "name": "data_region_iot_max_pending_batches_num",
+      "description": "The maximum pending batches num in IoTConsensus",
+      "type": "int32",
+      "default": "12",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election"
+      ]
+    },
+    {
+      "name": "data_region_iot_max_memory_ratio_for_queue",
+      "description": "The maximum memory ratio for queue in IoTConsensus",
+      "type": "double",
+      "default": "0.6",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_memory",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election",
+        "Memory"
+      ]
+    },
+    {
+      "name": "config_node_ratis_log_appender_buffer_size_max",
+      "description": "confignode max payload size for a single log-sync-RPC from leader to follower",
+      "type": "int32",
+      "default": "4MB",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "export",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network",
+        "Procedure",
+        "WAL"
+      ]
+    },
+    {
+      "name": "schema_region_ratis_log_appender_buffer_size_max",
+      "description": "schema region max payload size for a single log-sync-RPC from leader to follower",
+      "type": "int32",
+      "default": "4MB",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "export",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network",
+        "Procedure",
+        "Schema",
+        "WAL"
+      ]
+    },
+    {
+      "name": "data_region_ratis_log_appender_buffer_size_max",
+      "description": "data region max payload size for a single log-sync-RPC from leader to follower",
+      "type": "int32",
+      "default": "4MB",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "export",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network",
+        "Procedure",
+        "WAL"
+      ]
+    },
+    {
+      "name": "config_node_ratis_snapshot_trigger_threshold",
+      "description": "confignode trigger a snapshot when snapshot_trigger_threshold logs are written",
+      "type": "int32",
+      "default": "400,000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "schema_region_ratis_snapshot_trigger_threshold",
+      "description": "schema region trigger a snapshot when snapshot_trigger_threshold logs are written",
+      "type": "int32",
+      "default": "400,000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema",
+        "WAL"
+      ]
+    },
+    {
+      "name": "data_region_ratis_snapshot_trigger_threshold",
+      "description": "data region trigger a snapshot when snapshot_trigger_threshold logs are written",
+      "type": "int32",
+      "default": "400,000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "config_node_ratis_log_unsafe_flush_enable",
+      "description": "confignode allows flushing Raft Log asynchronously",
+      "type": "boolean",
+      "default": "false",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "flush",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election",
+        "Flush",
+        "WAL"
+      ]
+    },
+    {
+      "name": "schema_region_ratis_log_unsafe_flush_enable",
+      "description": "schema region allows flushing Raft Log asynchronously",
+      "type": "boolean",
+      "default": "false",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "flush",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election",
+        "Flush",
+        "Schema",
+        "WAL"
+      ]
+    },
+    {
+      "name": "data_region_ratis_log_unsafe_flush_enable",
+      "description": "data region allows flushing Raft Log asynchronously",
+      "type": "boolean",
+      "default": "false",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "flush",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election",
+        "Flush",
+        "WAL"
+      ]
+    },
+    {
+      "name": "config_node_ratis_log_segment_size_max_in_byte",
+      "description": "confignode max capacity of a single Log segment file",
+      "type": "int32",
+      "default": "24MB",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "schema_region_ratis_log_segment_size_max_in_byte",
+      "description": "schema region max capacity of a single Log segment file",
+      "type": "int32",
+      "default": "24MB",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema",
+        "WAL"
+      ]
+    },
+    {
+      "name": "data_region_ratis_log_segment_size_max_in_byte",
+      "description": "data region max capacity of a single Log segment file",
+      "type": "int32",
+      "default": "24MB",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "config_node_ratis_grpc_flow_control_window",
+      "description": "confignode flow control window for ratis grpc log appender",
+      "type": "int32",
+      "default": "4MB",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network",
+        "WAL"
+      ]
+    },
+    {
+      "name": "schema_region_ratis_grpc_flow_control_window",
+      "description": "schema region flow control window for ratis grpc log appender",
+      "type": "int32",
+      "default": "4MB",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network",
+        "Schema",
+        "WAL"
+      ]
+    },
+    {
+      "name": "data_region_ratis_grpc_flow_control_window",
+      "description": "data region flow control window for ratis grpc log appender",
+      "type": "int32",
+      "default": "4MB",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network",
+        "WAL"
+      ]
+    },
+    {
+      "name": "config_node_ratis_grpc_leader_outstanding_appends_max",
+      "description": "config node grpc pipeline concurrency threshold",
+      "type": "int32",
+      "default": "128",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "export",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network",
+        "Procedure"
+      ]
+    },
+    {
+      "name": "schema_region_ratis_grpc_leader_outstanding_appends_max",
+      "description": "schema region grpc pipeline concurrency threshold",
+      "type": "int32",
+      "default": "128",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "export",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network",
+        "Procedure",
+        "Schema"
+      ]
+    },
+    {
+      "name": "data_region_ratis_grpc_leader_outstanding_appends_max",
+      "description": "data region grpc pipeline concurrency threshold",
+      "type": "int32",
+      "default": "128",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "export",
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network",
+        "Procedure"
+      ]
+    },
+    {
+      "name": "config_node_ratis_log_force_sync_num",
+      "description": "config node fsync threshold",
+      "type": "int32",
+      "default": "128",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "schema_region_ratis_log_force_sync_num",
+      "description": "schema region fsync threshold",
+      "type": "int32",
+      "default": "128",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema",
+        "WAL"
+      ]
+    },
+    {
+      "name": "data_region_ratis_log_force_sync_num",
+      "description": "data region fsync threshold",
+      "type": "int32",
+      "default": "128",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "config_node_ratis_rpc_leader_election_timeout_min_ms",
+      "description": "confignode min election timeout for leader election",
+      "type": "int32",
+      "default": "2000ms",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network"
+      ]
+    },
+    {
+      "name": "schema_region_ratis_rpc_leader_election_timeout_min_ms",
+      "description": "schema region min election timeout for leader election",
+      "type": "int32",
+      "default": "2000ms",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network",
+        "Schema"
+      ]
+    },
+    {
+      "name": "data_region_ratis_rpc_leader_election_timeout_min_ms",
+      "description": "data region min election timeout for leader election",
+      "type": "int32",
+      "default": "2000ms",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network"
+      ]
+    },
+    {
+      "name": "config_node_ratis_rpc_leader_election_timeout_max_ms",
+      "description": "confignode max election timeout for leader election",
+      "type": "int32",
+      "default": "2000ms",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network"
+      ]
+    },
+    {
+      "name": "schema_region_ratis_rpc_leader_election_timeout_max_ms",
+      "description": "schema region max election timeout for leader election",
+      "type": "int32",
+      "default": "2000ms",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network",
+        "Schema"
+      ]
+    },
+    {
+      "name": "data_region_ratis_rpc_leader_election_timeout_max_ms",
+      "description": "data region max election timeout for leader election",
+      "type": "int32",
+      "default": "2000ms",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Network"
+      ]
+    },
+    {
+      "name": "config_node_ratis_request_timeout_ms",
+      "description": "confignode ratis client retry threshold",
+      "type": "int32",
+      "default": "10s",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "schema_region_ratis_request_timeout_ms",
+      "description": "schema region ratis client retry threshold",
+      "type": "int32",
+      "default": "10s",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema"
+      ]
+    },
+    {
+      "name": "data_region_ratis_request_timeout_ms",
+      "description": "data region ratis client retry threshold",
+      "type": "int32",
+      "default": "10s",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "config_node_ratis_max_retry_attempts",
+      "description": "confignode ratis client max retry attempts",
+      "type": "int32",
+      "default": "10",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "config_node_ratis_initial_sleep_time_ms",
+      "description": "confignode ratis client retry initial sleep time",
+      "type": "int32",
+      "default": "100ms",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "config_node_ratis_max_sleep_time_ms",
+      "description": "confignode ratis client retry max sleep time",
+      "type": "int32",
+      "default": "10s",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "schema_region_ratis_max_retry_attempts",
+      "description": "schema region ratis client max retry attempts",
+      "type": "int32",
+      "default": "10",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema"
+      ]
+    },
+    {
+      "name": "schema_region_ratis_initial_sleep_time_ms",
+      "description": "schema region ratis client retry initial sleep time",
+      "type": "int32",
+      "default": "100ms",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema"
+      ]
+    },
+    {
+      "name": "schema_region_ratis_max_sleep_time_ms",
+      "description": "schema region ratis client retry max sleep time",
+      "type": "int32",
+      "default": "10s",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema"
+      ]
+    },
+    {
+      "name": "data_region_ratis_max_retry_attempts",
+      "description": "data region ratis client max retry attempts",
+      "type": "int32",
+      "default": "10",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "data_region_ratis_initial_sleep_time_ms",
+      "description": "data region ratis client retry initial sleep time",
+      "type": "int32",
+      "default": "100ms",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "data_region_ratis_max_sleep_time_ms",
+      "description": "data region ratis client retry max sleep time",
+      "type": "int32",
+      "default": "10s",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "ratis_first_election_timeout_min_ms",
+      "description": "minimal first election timeout for RatisConsensus",
+      "type": "int64",
+      "default": "50 (ms)",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election"
+      ]
+    },
+    {
+      "name": "ratis_first_election_timeout_max_ms",
+      "description": "maximal first election timeout for RatisConsensus",
+      "type": "int64",
+      "default": "150 (ms)",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "network_bandwidth2"
+      ],
+      "iotdb_subsystems": [
+        "Election"
+      ]
+    },
+    {
+      "name": "config_node_ratis_preserve_logs_num_when_purge",
+      "description": "confignode preserves certain logs when take snapshot and purge",
+      "type": "int32",
+      "default": "1000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "schema_region_ratis_preserve_logs_num_when_purge",
+      "description": "schema region preserves certain logs when take snapshot and purge",
+      "type": "int32",
+      "default": "1000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "Schema",
+        "WAL"
+      ]
+    },
+    {
+      "name": "data_region_ratis_preserve_logs_num_when_purge",
+      "description": "data region preserves certain logs when take snapshot and purge",
+      "type": "int32",
+      "default": "1000",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": [
+        "WAL"
+      ]
+    },
+    {
+      "name": "config_node_ratis_periodic_snapshot_interval",
+      "description": "duration interval of config-node periodic snapshot",
+      "type": "int64",
+      "default": "86400 (seconds)",
+      "effective": "After restarting system",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "procedure_core_worker_thread_count",
+      "description": "The number of worker thread count",
+      "type": "int32",
+      "default": "4",
+      "effective": "After restarting system",
+      "anomaly_classes": [
+        "full_cpu"
+      ],
+      "iotdb_subsystems": [
+        "Concurrency"
+      ]
+    },
+    {
+      "name": "enable_mqtt_service。",
+      "description": "Whether to enable the MQTT service",
+      "type": "Boolean",
+      "default": "False",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "mqtt_host",
+      "description": "The host to which the MQTT service is bound",
+      "type": "String",
+      "default": "0.0.0.0",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "mqtt_port",
+      "description": "The port to which the MQTT service is bound",
+      "type": "int32",
+      "default": "1883",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "mqtt_handler_pool_size",
+      "description": "The size of the handler pool used to process MQTT messages",
+      "type": "int32",
+      "default": "1",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "mqtt_payload_formatter",
+      "description": "MQTT message payload formatter",
+      "type": "String",
+      "default": "JSON",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "export"
+      ],
+      "iotdb_subsystems": [
+        "Procedure"
+      ]
+    },
+    {
+      "name": "mqtt_max_message_size",
+      "description": "Maximum length of MQTT message in bytes",
+      "type": "int32",
+      "default": "1048576",
+      "effective": "hot-load",
+      "anomaly_classes": [],
+      "iotdb_subsystems": []
+    },
+    {
+      "name": "load_active_listening_enable",
+      "description": "Whether to enable the DataNode's active listening and loading of tsfile functionality (default is enabled).",
+      "type": "Boolean",
+      "default": "true",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "export"
+      ],
+      "iotdb_subsystems": [
+        "Procedure",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "load_active_listening_dirs",
+      "description": "The directories to be listened to (automatically includes subdirectories of the directory), if there are multiple, separate with “,”. The default directory is ext/load/pending (supports hot loading).",
+      "type": "String",
+      "default": "ext/load/pending",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "export"
+      ],
+      "iotdb_subsystems": [
+        "Procedure"
+      ]
+    },
+    {
+      "name": "load_active_listening_fail_dir",
+      "description": "The directory to which files are transferred after the execution of loading tsfile files fails, only one directory can be configured.",
+      "type": "String",
+      "default": "ext/load/failed",
+      "effective": "hot-load",
+      "anomaly_classes": [
+        "export"
+      ],
+      "iotdb_subsystems": [
+        "Procedure",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "load_active_listening_max_thread_num",
+      "description": "The maximum number of threads to perform loading tsfile tasks simultaneously. The default value when the parameter is commented out is max(1, CPU core count / 2). When the user sets a value not in the range [1, CPU core count / 2], it will be set to the default value (1, CPU core count / 2).",
+      "type": "Long",
+      "default": "max(1, CPU core count / 2)",
+      "effective": "Effective after restart",
+      "anomaly_classes": [
+        "export",
+        "full_cpu"
+      ],
+      "iotdb_subsystems": [
+        "Concurrency",
+        "Procedure",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "load_active_listening_check_interval_seconds",
+      "description": "Active listening polling interval in seconds. The function of actively listening to tsfile is achieved by polling the folder. This configuration specifies the time interval between two checks of load_active_listening_dirs, and the next check will be executed after load_active_listening_check_interval_seconds seconds of each check. When the user sets the polling interval to less than 1, it will be set to the default value of 5 seconds.",
+      "type": "Long",
+      "default": "5",
+      "effective": "Effective after restart",
+      "anomaly_classes": [
+        "export"
+      ],
+      "iotdb_subsystems": [
+        "Procedure",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "last_cache_operation_on_load",
+      "description": "The operation performed to LastCache when a TsFile is successfully loaded. `UPDATE`: use the data in the TsFile to update LastCache; `UPDATE_NO_BLOB`: similar to UPDATE, but will invalidate LastCache for blob series; `CLEAN_DEVICE`: invalidate LastCache of devices contained in the TsFile; `CLEAN_ALL`: clean the whole LastCache.",
+      "type": "String",
+      "default": "UPDATE_NO_BLOB",
+      "effective": "Effective after restart",
+      "anomaly_classes": [
+        "export"
+      ],
+      "iotdb_subsystems": [
+        "Cache",
+        "Procedure",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "cache_last_values_for_load",
+      "description": "Whether to cache last values before loading a TsFile. Only effective when `last_cache_operation_on_load=UPDATE_NO_BLOB` or `last_cache_operation_on_load=UPDATE`. When set to true, blob series will be ignored even with `last_cache_operation_on_load=UPDATE`. Enabling this will increase the memory footprint during loading TsFiles.",
+      "type": "Boolean",
+      "default": "true",
+      "effective": "Effective after restart",
+      "anomaly_classes": [
+        "export",
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Cache",
+        "Memory",
+        "Procedure",
+        "TsFile"
+      ]
+    },
+    {
+      "name": "cache_last_values_memory_budget_in_byte",
+      "description": "When `cache_last_values_for_load=true`, the maximum memory that can be used to cache last values. If this value is exceeded, the cached values will be abandoned and last values will be read from the TsFile in a streaming manner.",
+      "type": "int32",
+      "default": "4194304",
+      "effective": "Effective after restart",
+      "anomaly_classes": [
+        "export",
+        "full_memory"
+      ],
+      "iotdb_subsystems": [
+        "Cache",
+        "Memory",
+        "Procedure",
+        "TsFile"
+      ]
+    }
+  ]
+}

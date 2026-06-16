@@ -1,0 +1,123 @@
+{
+  "window_id": "label4:count:1766:1705028995.701",
+  "predicted_class": "full_cpu",
+  "context": {
+    "label_file": "label4",
+    "window_start": "2024-01-12T03:09:55.701000+00:00",
+    "window_end": "2024-01-12T03:09:55.706000+00:00",
+    "log_count_original": 100,
+    "log_count": 8,
+    "anomaly_types": [
+      "full_cpu"
+    ],
+    "top_templates_raw": [
+      {
+        "template_id": "cluster_3",
+        "count": 41,
+        "text": "2024-01-12 <*> <*> INFO <*> - <*> <*> <*> bytes, total memory size: <*> bytes."
+      },
+      {
+        "template_id": "cluster_5",
+        "count": 13,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.logdispatcher.LogDispatcher$LogDispatcherThread:360 - <*> startIndex: <*> maxIndex: <*> pendingEntries size: <*> bufferedEntries size: <*>"
+      },
+      {
+        "template_id": "cluster_9",
+        "count": 12,
+        "text": "2024-01-12 <*> <*> INFO <*> - DataRegion[1] : accumulated a <*> <*> <*> <*> from <*> <*> <*>"
+      },
+      {
+        "template_id": "cluster_8",
+        "count": 11,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.logdispatcher.LogDispatcher:163 - <*> Push a log to the queue, where the queue length is <*>"
+      },
+      {
+        "template_id": "cluster_4",
+        "count": 10,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.logdispatcher.LogDispatcher$LogDispatcherThread:456 - Send <*> <*> to ConsensusGroup:TConsensusGroupId(type:DataRegion, <*>"
+      }
+    ],
+    "top_entities": [
+      {
+        "entity": "data_regions",
+        "count": 8
+      },
+      {
+        "entity": "nodes",
+        "count": 8
+      },
+      {
+        "entity": "consensus_groups",
+        "count": 8
+      },
+      {
+        "entity": "statistical_entities",
+        "count": 8
+      },
+      {
+        "entity": "node_ips",
+        "count": 8
+      },
+      {
+        "entity": "thread",
+        "count": 8
+      },
+      {
+        "entity": "extra_threads",
+        "count": 8
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "rank": 1,
+      "score": 0.8012318015098572,
+      "id": "CFG-mpp_data_exchange_max_pool_size",
+      "title": "Config: mpp_data_exchange_max_pool_size",
+      "anomaly_classes": [
+        "full_cpu"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 2,
+      "score": 0.7971863150596619,
+      "id": "CFG-mpp_data_exchange_core_pool_size",
+      "title": "Config: mpp_data_exchange_core_pool_size",
+      "anomaly_classes": [
+        "full_cpu"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 3,
+      "score": 0.7964727282524109,
+      "id": "CFG-insert_multi_tablet_enable_multithreading_column_threshold",
+      "title": "Config: insert_multi_tablet_enable_multithreading_column_threshold",
+      "anomaly_classes": [
+        "full_cpu"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 4,
+      "score": 0.7906270027160645,
+      "id": "CFG-continuous_query_execution_thread",
+      "title": "Config: continuous_query_execution_thread",
+      "anomaly_classes": [
+        "full_cpu"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 5,
+      "score": 0.7906208038330078,
+      "id": "CFG-procedure_core_worker_thread_count",
+      "title": "Config: procedure_core_worker_thread_count",
+      "anomaly_classes": [
+        "full_cpu"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    }
+  ]
+}

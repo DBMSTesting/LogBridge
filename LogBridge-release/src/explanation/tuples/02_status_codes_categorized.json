@@ -1,0 +1,193 @@
+{
+  "source": "docs_curated/Reference/Status-Codes.md",
+  "doc_type": "ErrorCodeDictionary",
+  "extraction_method": "claude-llm-manual",
+  "schema": {
+    "code": "numeric status code",
+    "name": "STATUS_CODE_NAME constant",
+    "meaning": "official description",
+    "anomaly_classes": "which of our 6 anomaly types could trigger this code",
+    "iotdb_subsystems": "which database subsystems emit this code",
+    "severity": "fatal | recoverable | client_error | info",
+    "common_root_cause": "likely root cause hint for ops engineer"
+  },
+  "by_anomaly_class": {
+    "compaction": [
+      {
+        "code": 608, "name": "COMPACTION_ERROR",
+        "meaning": "Meet error while merging",
+        "common_root_cause": "TsFile merge failed due to corruption, disk space, or schema mismatch",
+        "iotdb_subsystems": ["Compaction", "TsFile"],
+        "severity": "recoverable",
+        "tags": ["compaction", "merge failure"]
+      },
+      {
+        "code": 604, "name": "TSFILE_PROCESSOR_ERROR",
+        "meaning": "TsFile processor related error",
+        "common_root_cause": "TsFile read/write/merge processor failure; often disk I/O or corruption",
+        "iotdb_subsystems": ["TsFile", "Compaction"],
+        "severity": "recoverable"
+      }
+    ],
+    "full_memory": [
+      {
+        "code": 301, "name": "EXECUTE_STATEMENT_ERROR",
+        "meaning": "Execute statement error (often used for query memory OOM)",
+        "common_root_cause": "Query needs more memory than allocated; see FAQ 1.10",
+        "iotdb_subsystems": ["Memory", "Query"],
+        "severity": "recoverable",
+        "fix_hint": "increase heap or tune datanode_memory_proportion"
+      },
+      {
+        "code": 709, "name": "MPP_MEMORY_NOT_ENOUGH",
+        "meaning": "Not enough memory for task execution in MPP",
+        "common_root_cause": "MPP query dispatcher hit memory pool limit",
+        "iotdb_subsystems": ["Memory", "Query"],
+        "severity": "recoverable",
+        "fix_hint": "reduce query parallelism or increase mpp_data_exchange_memory_proportion"
+      },
+      {
+        "code": 611, "name": "DISK_SPACE_INSUFFICIENT",
+        "meaning": "Disk space is insufficient",
+        "common_root_cause": "data dir or WAL dir filled up; manifest of full_memory often co-occurs",
+        "iotdb_subsystems": ["TsFile", "WAL"],
+        "severity": "fatal",
+        "fix_hint": "free disk, configure tiered storage, or expand cluster"
+      },
+      {
+        "code": 600, "name": "SYSTEM_READ_ONLY",
+        "meaning": "IoTDB system is read only",
+        "common_root_cause": "System auto-switched to read-only (memory exhaustion or recovery)",
+        "iotdb_subsystems": ["Memory"],
+        "severity": "fatal"
+      }
+    ],
+    "flush": [
+      {
+        "code": 601, "name": "STORAGE_ENGINE_ERROR",
+        "meaning": "Storage engine related error",
+        "common_root_cause": "Generic storage engine failure during write/flush path",
+        "iotdb_subsystems": ["Flush", "MemTable", "TsFile"],
+        "severity": "recoverable"
+      },
+      {
+        "code": 605, "name": "WRITE_PROCESS_ERROR",
+        "meaning": "Writing data related error",
+        "common_root_cause": "Write path failed; may be downstream of Flush stall",
+        "iotdb_subsystems": ["MemTable", "Flush"],
+        "severity": "recoverable"
+      },
+      {
+        "code": 606, "name": "WRITE_PROCESS_REJECT",
+        "meaning": "Writing data rejected error",
+        "common_root_cause": "Backpressure: system cannot accept more writes (MemTable saturated, Flush queue full)",
+        "iotdb_subsystems": ["MemTable", "Flush"],
+        "severity": "recoverable",
+        "fix_hint": "decrease write rate, or increase MemTable size / flush_thread_count"
+      }
+    ],
+    "network_bandwidth2": [
+      {
+        "code": 605, "name": "WRITE_PROCESS_ERROR",
+        "meaning": "Writing data related error (cluster replication failure)",
+        "common_root_cause": "Raft replication delay due to network slowness",
+        "iotdb_subsystems": ["Network", "WAL"],
+        "severity": "recoverable"
+      },
+      {
+        "code": 712, "name": "INTERNAL_REQUEST_TIME_OUT",
+        "meaning": "MPP Operation timeout",
+        "common_root_cause": "Internal RPC slow, often network or downstream overload",
+        "iotdb_subsystems": ["Network", "Query"],
+        "severity": "recoverable"
+      },
+      {
+        "code": 713, "name": "INTERNAL_REQUEST_RETRY_ERROR",
+        "meaning": "Internal operation retry failed",
+        "common_root_cause": "Transient network errors that retry could not resolve",
+        "iotdb_subsystems": ["Network", "Procedure"],
+        "severity": "recoverable"
+      },
+      {
+        "code": 904, "name": "CONSENSUS_NOT_INITIALIZED",
+        "meaning": "Consensus is not initialized and cannot provide service",
+        "common_root_cause": "Raft consensus group not yet elected leader (startup or after partition)",
+        "iotdb_subsystems": ["Election", "Network"],
+        "severity": "recoverable"
+      },
+      {
+        "code": 905, "name": "REGION_LEADER_CHANGE_ERROR",
+        "meaning": "Region leader migration failed",
+        "common_root_cause": "Failed to transfer Raft leadership (network or follower unresponsive)",
+        "iotdb_subsystems": ["Election", "Network"],
+        "severity": "recoverable"
+      },
+      {
+        "code": 1008, "name": "CAN_NOT_CONNECT_DATANODE",
+        "meaning": "Can not connect to DataNode",
+        "common_root_cause": "Network partition or DataNode crashed",
+        "iotdb_subsystems": ["Network"],
+        "severity": "fatal"
+      }
+    ],
+    "export": [
+      {
+        "code": 1100, "name": "LOAD_FILE_ERROR",
+        "meaning": "Meet error while loading file",
+        "common_root_cause": "TsFile load failed (schema mismatch, file corruption, version incompatibility)",
+        "iotdb_subsystems": ["TsFile", "Procedure"],
+        "severity": "recoverable"
+      },
+      {
+        "code": 1101, "name": "LOAD_PIECE_OF_TSFILE_ERROR",
+        "meaning": "Error when load a piece of TsFile when loading",
+        "common_root_cause": "Streaming load chunked transfer failed",
+        "iotdb_subsystems": ["TsFile", "Network"],
+        "severity": "recoverable"
+      },
+      {
+        "code": 1102, "name": "DESERIALIZE_PIECE_OF_TSFILE_ERROR",
+        "meaning": "Error when deserialize a piece of TsFile",
+        "common_root_cause": "TsFile content corrupted during transfer",
+        "iotdb_subsystems": ["TsFile", "Network"],
+        "severity": "recoverable"
+      }
+    ],
+    "full_cpu": [
+      {
+        "code": 712, "name": "INTERNAL_REQUEST_TIME_OUT",
+        "meaning": "MPP Operation timeout",
+        "common_root_cause": "Possibly CPU saturation slowing operations beyond timeout",
+        "iotdb_subsystems": ["Query", "Network"],
+        "severity": "recoverable"
+      },
+      {
+        "code": 715, "name": "QUERY_WAS_KILLED",
+        "meaning": "Query was killed when execute",
+        "common_root_cause": "Query manually killed or watchdog killed runaway CPU-heavy query",
+        "iotdb_subsystems": ["Query"],
+        "severity": "info"
+      }
+    ]
+  },
+  "all_codes_summary": [
+    {"range": "2xx", "category": "System lifecycle", "codes_count": 4, "anomaly_relevant": false, "examples": ["INCOMPATIBLE_VERSION", "CONFIGURATION_ERROR"]},
+    {"range": "3xx", "category": "Statement execution", "codes_count": 7, "anomaly_relevant": true, "examples": ["EXECUTE_STATEMENT_ERROR", "ILLEGAL_PARAMETER"]},
+    {"range": "5xx", "category": "Schema / metadata", "codes_count": 28, "anomaly_relevant": false, "examples": ["DATABASE_NOT_EXIST", "METADATA_ERROR", "PBTREE_FILE_NOT_EXISTS"]},
+    {"range": "6xx", "category": "Storage engine / write / WAL", "codes_count": 12, "anomaly_relevant": true, "examples": ["STORAGE_ENGINE_ERROR", "WRITE_PROCESS_REJECT", "COMPACTION_ERROR", "WAL_ERROR", "DISK_SPACE_INSUFFICIENT"]},
+    {"range": "7xx", "category": "Query / MPP", "codes_count": 16, "anomaly_relevant": true, "examples": ["MPP_MEMORY_NOT_ENOUGH", "QUERY_PROCESS_ERROR", "INTERNAL_REQUEST_TIME_OUT"]},
+    {"range": "8xx", "category": "Auth", "codes_count": 16, "anomaly_relevant": false, "examples": ["NO_PERMISSION", "WRONG_LOGIN_PASSWORD"]},
+    {"range": "9xx", "category": "Region / Consensus", "codes_count": 8, "anomaly_relevant": true, "examples": ["CONSENSUS_NOT_INITIALIZED", "REGION_LEADER_CHANGE_ERROR", "MIGRATE_REGION_ERROR"]},
+    {"range": "10xx", "category": "DataNode lifecycle", "codes_count": 9, "anomaly_relevant": true, "examples": ["NO_ENOUGH_DATANODE", "CAN_NOT_CONNECT_DATANODE", "DATANODE_STOP_ERROR"]},
+    {"range": "11xx", "category": "Load / Sync / Pipe", "codes_count": 10, "anomaly_relevant": true, "examples": ["LOAD_FILE_ERROR", "SYNC_FILE_ERROR", "PIPE_ERROR"]},
+    {"range": "12xx-14xx", "category": "UDF / Trigger / CQ", "codes_count": 12, "anomaly_relevant": false, "examples": ["UDF_LOAD_CLASS_ERROR", "TRIGGER_FIRE_ERROR", "CQ_ALREADY_EXIST"]}
+  ],
+  "key_anomaly_diagnostic_codes": {
+    "full_memory_smoking_gun": [301, 709, 611, 600],
+    "flush_pressure_smoking_gun": [601, 605, 606],
+    "network_bandwidth2_smoking_gun": [712, 713, 904, 905, 1008],
+    "compaction_smoking_gun": [608, 604],
+    "export_smoking_gun": [1100, 1101, 1102],
+    "full_cpu_smoking_gun": [712, 715]
+  }
+}

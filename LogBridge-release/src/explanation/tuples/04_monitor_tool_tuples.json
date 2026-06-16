@@ -1,0 +1,151 @@
+{
+  "source": "docs_curated/Tools-System/Monitor-Tool_apache.md",
+  "doc_type": "Tools-System",
+  "extraction_method": "claude-llm-manual",
+  "schema": {
+    "id": "unique tuple id",
+    "title": "metric / dashboard topic",
+    "symptom": "what abnormal pattern to watch",
+    "root_cause": "what such pattern indicates",
+    "fix": "diagnostic / mitigation action",
+    "config_params": "list of related IoTDB config parameters",
+    "anomaly_classes": "subset of {compaction, export, flush, full_cpu, full_memory, network_bandwidth2}",
+    "iotdb_subsystems": "subset of {Flush, Compaction, MemTable, TsFile, WAL, Memory, Network, Compression, Query, Cache, Procedure, Schema, GC, Election}",
+    "version": "applicable IoTDB versions",
+    "tags": "free-form tags for retrieval"
+  },
+  "tuples": [
+    {
+      "id": "MON-1",
+      "title": "Enable Prometheus metric exposition on DataNode",
+      "symptom": "No metrics available for anomaly diagnosis; cannot retrieve runtime numbers",
+      "root_cause": "DataNode's metric reporter is disabled or set below CORE level; without scraping endpoint Grafana cannot visualize",
+      "fix": [
+        "Set dn_metric_reporter_list=PROMETHEUS in iotdb-system.properties",
+        "Set dn_metric_level=CORE (minimum) or IMPORTANT/NORMAL/ALL for richer signal",
+        "Set dn_metric_prometheus_reporter_port=9091 (default)",
+        "Verify with curl http://<host>:9091/metrics"
+      ],
+      "config_params": ["dn_metric_reporter_list", "dn_metric_level", "dn_metric_prometheus_reporter_port"],
+      "anomaly_classes": ["compaction", "export", "flush", "full_cpu", "full_memory", "network_bandwidth2"],
+      "iotdb_subsystems": ["Memory", "Network", "Query", "Compaction", "Flush"],
+      "version": "all (2.x)",
+      "tags": ["prometheus", "metrics", "observability", "setup"]
+    },
+    {
+      "id": "MON-2",
+      "title": "Storage Engine dashboard: file_count and TsFile size at various stages",
+      "symptom": "file_count{name='seq'} or file_count{name='unseq'} climbing; many small TsFiles accumulating; compaction tasks pile up",
+      "root_cause": "TsFiles produced by flush faster than the cross-space / inner-space compaction can merge them; compaction throughput is the bottleneck",
+      "fix": [
+        "Increase compaction concurrency (target_compaction_file_size, concurrent_compaction_thread)",
+        "Verify disk IO is not saturated (full_cpu / disk i/o wait)",
+        "If files accumulate during high write burst, check whether flush is also lagging"
+      ],
+      "config_params": ["target_compaction_file_size", "concurrent_compaction_thread", "enable_seq_space_compaction", "enable_unseq_space_compaction", "enable_cross_space_compaction"],
+      "anomaly_classes": ["compaction", "flush"],
+      "iotdb_subsystems": ["Compaction", "TsFile", "Flush"],
+      "version": "all",
+      "tags": ["compaction backlog", "file count", "storage engine dashboard"]
+    },
+    {
+      "id": "MON-3",
+      "title": "WAL dashboard: WAL file count/size and SyncBuffer latency",
+      "symptom": "Large number of WAL files; high WAL flush SyncBuffer latency; rising disk usage in wal/ directory",
+      "root_cause": "WAL not rotated/flushed in time; disk fsync slow; or wal_throttle_threshold reached because MemTables not flushing fast enough",
+      "fix": [
+        "Check disk IO latency on WAL volume",
+        "Inspect MemTable flush queue length to see if flush is back-pressured",
+        "Tune wal_throttle_threshold and wal_buffer_size",
+        "Force FLUSH ON CLUSTER to drain MemTables and let WAL rotate"
+      ],
+      "config_params": ["wal_throttle_threshold", "wal_buffer_size", "wal_mode", "wal_fsync_mode"],
+      "anomaly_classes": ["flush", "full_memory", "full_cpu"],
+      "iotdb_subsystems": ["WAL", "Flush", "MemTable"],
+      "version": "all",
+      "tags": ["wal backlog", "syncbuffer", "data writing dashboard"]
+    },
+    {
+      "id": "MON-4",
+      "title": "Data Writing dashboard: write latency P50/P99 spikes",
+      "symptom": "Average / P99 write latency increases; clients see Timeout exceptions or 408/503-like errors",
+      "root_cause": "Either MemTable insertion blocked by GC, by WAL throttle, by flush back-pressure, or by Ratis/IoTConsensus log replication delay",
+      "fix": [
+        "Cross-check JVM GC time percentage on system dashboard (full_memory)",
+        "Cross-check WAL SyncBuffer latency (flush)",
+        "Cross-check network packet rate (network_bandwidth2)",
+        "Profile a slow write with DEBUG SQL or query trace"
+      ],
+      "config_params": ["IOTDB_HEAP_SIZE", "datanode_memory_proportion", "wal_throttle_threshold"],
+      "anomaly_classes": ["flush", "full_memory", "full_cpu", "network_bandwidth2"],
+      "iotdb_subsystems": ["MemTable", "WAL", "GC", "Network"],
+      "version": "all",
+      "tags": ["write latency", "p99", "data writing dashboard"]
+    },
+    {
+      "id": "MON-5",
+      "title": "System Monitoring dashboard: JVM GC time % and heap memory usage",
+      "symptom": "GC time percentage > 10%; Old-Gen approaches max heap; Full GC frequency rises",
+      "root_cause": "Heap too small for workload; MemTable + query temp + cache evicts too slowly; possible memory leak in plugin/UDF",
+      "fix": [
+        "Increase IOTDB_HEAP_SIZE (datanode-env.sh)",
+        "Reduce write_memory_proportion if read-heavy, or chunk_timeseriesmeta_free_memory_proportion if memory-pressured queries",
+        "Check user-defined UDFs / triggers for leaks via jcmd / heap dump"
+      ],
+      "config_params": ["IOTDB_HEAP_SIZE", "datanode_memory_proportion", "write_memory_proportion", "chunk_timeseriesmeta_free_memory_proportion"],
+      "anomaly_classes": ["full_memory"],
+      "iotdb_subsystems": ["GC", "Memory", "MemTable", "Cache"],
+      "version": "all",
+      "tags": ["gc", "heap", "oom", "system dashboard"]
+    },
+    {
+      "id": "MON-6",
+      "title": "System Monitoring dashboard: network transmission/packet rate",
+      "symptom": "Network bandwidth saturated; packet send/recv rate plateau matches NIC capacity; high TCP retransmit",
+      "root_cause": "Insufficient bandwidth between DataNodes for IoTConsensus log replication, or client write fanout exceeding NIC; can also be caused by Ratis election storm",
+      "fix": [
+        "Inspect IoTConsensus / Ratis log dispatcher metrics for backlogs",
+        "Throttle clients or shard the workload across more DataNodes",
+        "If election storm, raise heartbeat_interval_in_ms and verify NTP clock skew"
+      ],
+      "config_params": ["heartbeat_interval_in_ms", "data_replication_factor", "schema_replication_factor"],
+      "anomaly_classes": ["network_bandwidth2"],
+      "iotdb_subsystems": ["Network", "Election"],
+      "version": "all",
+      "tags": ["network saturation", "tcp retransmit", "ratis", "iotconsensus"]
+    },
+    {
+      "id": "MON-7",
+      "title": "System Monitoring dashboard: disk space / file count alert",
+      "symptom": "Disk usage near threshold (default 5%); system auto-switches to READ-ONLY; writes rejected",
+      "root_cause": "DiskSpaceWarningThreshold reached because compaction not freeing space or because WAL/TsFile accumulation outpaces deletion",
+      "fix": [
+        "Free disk space (truncate /logs, archive cold data, drop obsolete databases)",
+        "Trigger START REPAIR DATA to clean orphaned TsFiles",
+        "Verify compaction is actually producing fewer/larger files",
+        "Use SET SYSTEM TO RUNNING after disk recovers"
+      ],
+      "config_params": ["disk_space_warning_threshold"],
+      "anomaly_classes": ["compaction", "flush"],
+      "iotdb_subsystems": ["TsFile", "WAL"],
+      "version": "all",
+      "tags": ["disk full", "read-only mode", "system dashboard"]
+    },
+    {
+      "id": "MON-8",
+      "title": "Cluster Overview dashboard: per-node CPU usage",
+      "symptom": "One DataNode shows sustained >80% CPU; peers idle; write/query slows down for clients pinned to that node",
+      "root_cause": "Data hot-spot (one DataRegion overloaded), or compaction thread saturation, or query without index causing full scans",
+      "fix": [
+        "Use SHOW REGIONS to identify hot DataRegion(s) and rebalance via region migration",
+        "Cap concurrent_compaction_thread on hot node",
+        "Inspect SHOW QUERIES for long-running queries; KILL QUERY if needed"
+      ],
+      "config_params": ["concurrent_compaction_thread", "concurrent_writing_partition_max", "data_region_per_data_node"],
+      "anomaly_classes": ["full_cpu", "compaction"],
+      "iotdb_subsystems": ["Compaction", "Query", "Schema"],
+      "version": "all",
+      "tags": ["cpu hotspot", "load imbalance", "data region migration"]
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "source": [
+    "docs_curated/Tools-System/Health-Check-Tool.md",
+    "docs_curated/Tools-System/Maintenance-Tool_apache.md"
+  ],
+  "doc_type": "Tools-System",
+  "extraction_method": "claude-llm-manual",
+  "schema": {
+    "id": "unique tuple id",
+    "title": "tool / diagnostic procedure",
+    "symptom": "trigger condition",
+    "root_cause": "what the tool reveals about the underlying issue",
+    "fix": "how to use it / what to fix based on output",
+    "config_params": "related config items",
+    "anomaly_classes": "subset of {compaction, export, flush, full_cpu, full_memory, network_bandwidth2}",
+    "iotdb_subsystems": "subset of {Flush, Compaction, MemTable, TsFile, WAL, Memory, Network, Compression, Query, Cache, Procedure, Schema, GC, Election}",
+    "version": "applicable IoTDB versions",
+    "tags": "free-form tags"
+  },
+  "tuples": [
+    {
+      "id": "TS-HC-1",
+      "title": "health_check.sh — preflight + runtime env audit",
+      "symptom": "Node won't start; existing node behaves oddly (slow start, port conflicts, OOM during init, 'too many open files' during heavy write)",
+      "root_cause": "Environment misconfiguration: blocked ports, JDK missing/wrong version, insufficient memory headroom, swap enabled, ulimit < 65535, missing write permission",
+      "fix": [
+        "Run: health_check.sh -o all -ips <peer_ip> <peer_port1> <peer_port2>",
+        "Checks include: JDK ≥1.8, memory allocation per ConfigNode/DataNode, write perms on data/datanode/{data,consensus,system,wal} + ext/{pipe,udf,trigger}, free ports 16668/10730/11742/10750/10760/10710/10720, max open files ≥65535, swap disabled",
+        "Use -o local for own machine; -o remote with -ips to test peer connectivity",
+        "Output explicitly lists which check failed (e.g. 'Inaccessible server ports: 10.0.6.230:10311')"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["full_memory", "network_bandwidth2"],
+      "iotdb_subsystems": ["Memory", "Network"],
+      "version": "all",
+      "tags": ["health check", "preflight", "environment audit"]
+    },
+    {
+      "id": "TS-HC-2",
+      "title": "Fix 'too many open files' by raising ulimit to 65535",
+      "symptom": "IoTDB logs throw 'Too many open files' or 'EMFILE'; new TsFile creation fails; query loaded files capped",
+      "root_cause": "Default ulimit -n is 1024-4096 on most distros; IoTDB needs >=65535 because of many TsFile/WAL/consensus files per region",
+      "fix": [
+        "Temporary: ulimit -n 65535",
+        "Permanent: append '* soft nofile 65535' and '* hard nofile 65535' to /etc/security/limits.conf",
+        "Re-login and verify with ulimit -n"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["compaction", "flush"],
+      "iotdb_subsystems": ["TsFile", "WAL"],
+      "version": "all",
+      "tags": ["ulimit", "open files", "EMFILE"]
+    },
+    {
+      "id": "TS-HC-3",
+      "title": "Disable swap to prevent performance degradation",
+      "symptom": "Random latency spikes; 'free -m' shows non-zero swap used; tail latencies far exceed averages",
+      "root_cause": "IoTDB's JVM heap and memory-mapped files perform badly when pages get swapped to disk; OS swap competes with WAL/TsFile IO",
+      "fix": [
+        "echo 'vm.swappiness = 0' >> /etc/sysctl.conf",
+        "swapoff -a && swapon -a",
+        "sysctl -p",
+        "Verify: free -m  → Swap line should be 0"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["full_memory", "full_cpu"],
+      "iotdb_subsystems": ["Memory", "GC"],
+      "version": "all",
+      "tags": ["swap", "swappiness", "memory tuning"]
+    },
+    {
+      "id": "TS-HC-4",
+      "title": "print-iotdb-data-dir — visualise data directory layout",
+      "symptom": "Suspect partition/region miscount; need to enumerate sequence/unsequence directories before manual surgery; suspected orphan directories",
+      "root_cause": "Region/TimePartition folder structure can be skewed by failed migrations, deleted databases, or version upgrades",
+      "fix": [
+        "tools/tsfile/print-iotdb-data-dir.sh <data_folder1[,folder2]> [output_path]",
+        "Output tree shows sequence/<database>/<region>/<time_partition> hierarchy",
+        "Cross-reference with SHOW REGIONS to verify physical layout matches metadata"
+      ],
+      "config_params": ["dn_data_dirs"],
+      "anomaly_classes": ["compaction"],
+      "iotdb_subsystems": ["TsFile", "Schema"],
+      "version": "all",
+      "tags": ["data directory", "layout inspection"]
+    },
+    {
+      "id": "TS-HC-5",
+      "title": "print-tsfile (sketch) — inspect a single TsFile internals",
+      "symptom": "Corrupted TsFile suspected; compaction fails on one file; need to verify Chunk/ChunkGroup integrity",
+      "root_cause": "Crash during write may leave incomplete chunk headers or missing magic tail; sketch shows file truncation point",
+      "fix": [
+        "tools/tsfile/print-tsfile-sketch.sh <tsfile_path> [output_path]",
+        "Look for: missing magic head (offset 0) / tail (END of TsFile), broken Chunk Group markers, ChunkIndex inconsistencies",
+        "If file is broken: move it aside, then START REPAIR DATA to let IoTDB reconstruct"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["compaction"],
+      "iotdb_subsystems": ["TsFile"],
+      "version": "all",
+      "tags": ["tsfile corruption", "sketch", "low-level inspection"]
+    },
+    {
+      "id": "TS-HC-6",
+      "title": "print-tsfile-resource-files — verify .resource file matches its TsFile",
+      "symptom": "Query returns inconsistent results; replica drift after migration; resource file timestamps differ from data file",
+      "root_cause": ".resource sidecar stores device→time-range index for partition pruning; if it diverges from the actual TsFile, query plans go wrong",
+      "fix": [
+        "tools/tsfile/print-tsfile-resource-files.sh <dir or .resource path>",
+        "Compare reported (device, start_time, end_time) with the actual TsFile's chunk timestamps from print-tsfile",
+        "Mismatch: delete the .resource file and restart DataNode (will regenerate) or run START REPAIR DATA"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["compaction"],
+      "iotdb_subsystems": ["TsFile", "Query"],
+      "version": "all",
+      "tags": ["tsfile resource", "metadata mismatch"]
+    }
+  ]
+}

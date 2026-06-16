@@ -1,0 +1,56 @@
+[
+  {
+    "class": "compaction",
+    "window_id": "label2:count:31392:1705029263.579",
+    "top_evidence_id": "TS-HC-4",
+    "top_evidence_score": 0.842130720615387,
+    "n_evidence": 5,
+    "prompt_chars": 5677,
+    "explanation_chars": 149
+  },
+  {
+    "class": "export",
+    "window_id": "label2:count:56280:1705029497.104",
+    "top_evidence_id": "CFG-last_cache_operation_on_load",
+    "top_evidence_score": 0.8672481179237366,
+    "n_evidence": 5,
+    "prompt_chars": 5488,
+    "explanation_chars": 149
+  },
+  {
+    "class": "flush",
+    "window_id": "label2:count:46055:1705029397.889",
+    "top_evidence_id": "CFG-seq_memtable_flush_interval_in_ms",
+    "top_evidence_score": 0.83407062292099,
+    "n_evidence": 5,
+    "prompt_chars": 4857,
+    "explanation_chars": 149
+  },
+  {
+    "class": "full_cpu",
+    "window_id": "label4:count:1766:1705028995.701",
+    "top_evidence_id": "CFG-mpp_data_exchange_max_pool_size",
+    "top_evidence_score": 0.8012318015098572,
+    "n_evidence": 5,
+    "prompt_chars": 4808,
+    "explanation_chars": 149
+  },
+  {
+    "class": "full_memory",
+    "window_id": "label4:count:12704:1705029088.767",
+    "top_evidence_id": "CFG-sort_buffer_size_in_bytes",
+    "top_evidence_score": 0.8704124093055725,
+    "n_evidence": 5,
+    "prompt_chars": 5990,
+    "explanation_chars": 149
+  },
+  {
+    "class": "network_bandwidth2",
+    "window_id": "label4:count:26667:1705029224.339",
+    "top_evidence_id": "ISS-10882",
+    "top_evidence_score": 0.8683614730834961,
+    "n_evidence": 5,
+    "prompt_chars": 5959,
+    "explanation_chars": 149
+  }
+]

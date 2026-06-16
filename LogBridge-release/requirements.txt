@@ -1,0 +1,20 @@
+# --- core deep-learning stack ---
+torch>=2.1.0
+torch-geometric>=2.4.0
+
+# --- log parsing & data ---
+drain3>=0.9.11
+numpy>=1.24
+scikit-learn>=1.3
+tqdm>=4.65
+ijson>=3.2
+
+# --- explanation pipeline (LLM/RAG) ---
+# The pipeline talks to an OpenAI-compatible HTTP endpoint via the standard
+# `requests` library; no SDK lock-in. For local backends (e.g. Ollama),
+# only the HTTP URL needs to change.
+requests>=2.31
+
+# --- optional: BERT encoder for retrieval index ---
+transformers>=4.35
+sentence-transformers>=2.5

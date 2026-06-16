@@ -1,0 +1,123 @@
+{
+  "window_id": "label4:count:12704:1705029088.767",
+  "predicted_class": "full_memory",
+  "context": {
+    "label_file": "label4",
+    "window_start": "2024-01-12T03:11:28.767000+00:00",
+    "window_end": "2024-01-12T03:11:28.777000+00:00",
+    "log_count_original": 100,
+    "log_count": 7,
+    "anomaly_types": [
+      "full_memory"
+    ],
+    "top_templates_raw": [
+      {
+        "template_id": "cluster_3",
+        "count": 49,
+        "text": "2024-01-12 <*> <*> INFO <*> - <*> <*> <*> bytes, total memory size: <*> bytes."
+      },
+      {
+        "template_id": "cluster_8",
+        "count": 19,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.logdispatcher.LogDispatcher:163 - <*> Push a log to the queue, where the queue length is <*>"
+      },
+      {
+        "template_id": "cluster_7",
+        "count": 8,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.service.IoTConsensusRPCServiceProcessor:125 - execute TSyncLogEntriesReq for TConsensusGroupId(type:DataRegion, <*> with result [TSStatus(code:200, message:Executed successfully.)]"
+      },
+      {
+        "template_id": "cluster_5",
+        "count": 6,
+        "text": "2024-01-12 <*> <*> INFO org.apache.iotdb.consensus.iot.logdispatcher.LogDispatcher$LogDispatcherThread:360 - <*> startIndex: <*> maxIndex: <*> pendingEntries size: <*> bufferedEntries size: <*>"
+      },
+      {
+        "template_id": "cluster_9",
+        "count": 6,
+        "text": "2024-01-12 <*> <*> INFO <*> - DataRegion[1] : accumulated a <*> <*> <*> <*> from <*> <*> <*>"
+      }
+    ],
+    "top_entities": [
+      {
+        "entity": "data_regions",
+        "count": 7
+      },
+      {
+        "entity": "nodes",
+        "count": 7
+      },
+      {
+        "entity": "consensus_groups",
+        "count": 7
+      },
+      {
+        "entity": "statistical_entities",
+        "count": 7
+      },
+      {
+        "entity": "node_ips",
+        "count": 7
+      },
+      {
+        "entity": "thread",
+        "count": 7
+      },
+      {
+        "entity": "extra_threads",
+        "count": 7
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "rank": 1,
+      "score": 0.8704124093055725,
+      "id": "CFG-sort_buffer_size_in_bytes",
+      "title": "Config: sort_buffer_size_in_bytes",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    },
+    {
+      "rank": 2,
+      "score": 0.8693361282348633,
+      "id": "DM-DR-2",
+      "title": "Sizing memory by number of timeseries",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "source": "docs_curated/Deployment-and-Maintenance/Environment-Requirements.md"
+    },
+    {
+      "rank": 3,
+      "score": 0.8602497577667236,
+      "id": "MON-5",
+      "title": "System Monitoring dashboard: JVM GC time % and heap memory usage",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "source": "docs_curated/Tools-System/Monitor-Tool_apache.md"
+    },
+    {
+      "rank": 4,
+      "score": 0.8568425178527832,
+      "id": "FAQ-1.10",
+      "title": "How to deal with estimated out of memory errors?",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "source": "docs_curated/FAQ/Frequently-asked-questions.md"
+    },
+    {
+      "rank": 5,
+      "score": 0.8489894866943359,
+      "id": "CFG-udf_initial_byte_array_length_for_memory_control",
+      "title": "Config: udf_initial_byte_array_length_for_memory_control",
+      "anomaly_classes": [
+        "full_memory"
+      ],
+      "source": "docs_curated/Reference/Common-Config-Manual.md"
+    }
+  ]
+}
