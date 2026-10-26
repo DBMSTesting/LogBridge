@@ -1,0 +1,141 @@
+{
+  "source": [
+    "docs_curated/Technical-Insider/Encoding-and-Compression.md",
+    "docs_curated/Technical-Insider/Cluster-data-partitioning.md"
+  ],
+  "doc_type": "Technical-Insider",
+  "extraction_method": "claude-llm-manual",
+  "schema": {
+    "id": "unique tuple id",
+    "title": "design concept / tunable",
+    "symptom": "trigger",
+    "root_cause": "design mechanism behind the behavior",
+    "fix": "operational action",
+    "config_params": "related config items",
+    "anomaly_classes": "subset of {compaction, export, flush, full_cpu, full_memory, network_bandwidth2}",
+    "iotdb_subsystems": "subset of {Flush, Compaction, MemTable, TsFile, WAL, Memory, Network, Compression, Query, Cache, Procedure, Schema, GC, Election}",
+    "version": "applicable IoTDB versions",
+    "tags": "free-form tags"
+  },
+  "tuples": [
+    {
+      "id": "TI-EC-1",
+      "title": "Choose encoding by data type and pattern",
+      "symptom": "Disk usage higher than expected; compression ratio file shows ratio_sum/memtable_flush_time below 5; bad fit between data type and encoding",
+      "root_cause": "Encoding mismatch: e.g. PLAIN on monotonic INT64, RLE on continuously-changing floats, TS_2DIFF on float with high precision (rounds to 2 decimals by default)",
+      "fix": [
+        "BOOLEAN → RLE (default)",
+        "INT32/INT64/TIMESTAMP/DATE monotonic → TS_2DIFF (default)",
+        "FLOAT/DOUBLE → GORILLA (default, lossless) or CHIMP",
+        "TEXT/STRING low cardinality → DICTIONARY (over PLAIN)",
+        "Bigger-than-expected files → audit timeseries with: SHOW TIMESERIES root.**  and look for ENCODING column"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["compaction"],
+      "iotdb_subsystems": ["TsFile", "Compression"],
+      "version": "all",
+      "tags": ["encoding", "tsfile size", "tuning"]
+    },
+    {
+      "id": "TI-EC-2",
+      "title": "Choose compressor (LZ4 default; trade off speed vs ratio)",
+      "symptom": "CPU saturated by compression during flush/compaction (high CPU even when write rate moderate); or disk usage high despite good encoding",
+      "root_cause": "GZIP/LZMA2 = slow CPU heavy (high ratio); SNAPPY/LZ4 = fast (medium ratio); UNCOMPRESSED skips CPU but blows up disk",
+      "fix": [
+        "Default: LZ4 (good balance)",
+        "CPU-bound + small disk pressure: keep LZ4 or SNAPPY",
+        "Disk-bound + CPU spare: try ZSTD or GZIP for higher ratio",
+        "Read average compression ratio from data/datanode/system/compression_ratio: ratio_sum ÷ memtable_flush_time"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["compaction", "full_cpu"],
+      "iotdb_subsystems": ["TsFile", "Compression", "Flush"],
+      "version": "all",
+      "tags": ["compressor", "lz4", "zstd", "trade-off"]
+    },
+    {
+      "id": "TI-CP-1",
+      "title": "Time partition interval (default 7 days) — sizing per workload",
+      "symptom": "Single time partition produces many tiny DataRegion files (interval too short); or cross-time queries scan one giant partition slowly (interval too long)",
+      "root_cause": "TimePartitionInterval controls how data is split horizontally; too small → many empty/sparse partitions and metadata overhead; too large → one partition holds too much data, compaction backlog concentrated, queries can't time-prune effectively",
+      "fix": [
+        "Default: 604800000 ms (7 days) — good for most workloads",
+        "High ingest rate (TB/day): shorten to 1 day to keep per-partition data bounded",
+        "Long-retention low-throughput: extend to 30 days to reduce partition count",
+        "Check current value via SHOW VARIABLES → TimePartitionInterval"
+      ],
+      "config_params": ["time_partition_interval"],
+      "anomaly_classes": ["compaction", "full_memory"],
+      "iotdb_subsystems": ["TsFile", "Schema"],
+      "version": "all (set at cluster init; rarely hot-changeable)",
+      "tags": ["time partition", "partition interval", "sizing"]
+    },
+    {
+      "id": "TI-CP-2",
+      "title": "SeriesSlotNum (default 1000) — series partition cardinality",
+      "symptom": "Hot SchemaRegion / DataRegion (one slot holds disproportionate load); ConfigNode partition table memory bloats; uneven CPU across DataNodes",
+      "root_cause": "Default hash partitioning splits timeseries into 1000 buckets; if data is heavily skewed in series namespace (e.g. one device with millions of metrics), buckets become uneven",
+      "fix": [
+        "Default 1000 fits most cases (balances metadata size vs balance quality)",
+        "For highly skewed metric distributions: switch SeriesSlotExecutorClass to a custom hash or list partitioner",
+        "Use SHOW REGIONS + DiskSpaceWarningThreshold dashboards to detect imbalance"
+      ],
+      "config_params": ["series_slot_num", "series_slot_executor_class"],
+      "anomaly_classes": ["full_cpu", "compaction"],
+      "iotdb_subsystems": ["Schema"],
+      "version": "all",
+      "tags": ["series partition", "hash partitioning", "load balance"]
+    },
+    {
+      "id": "TI-CP-3",
+      "title": "Replication factor and fault-tolerant Region placement",
+      "symptom": "After a single DataNode failure, neighbour DataNode immediately overloaded (CPU/memory spike)",
+      "root_cause": "Naive round-robin Region placement → failover concentrates load on one peer; IoTDB's fault-tolerant placement spreads replicas so failover load fans out",
+      "fix": [
+        "DataReplicationFactor ≥ 2 for HA (cluster default 2)",
+        "SchemaReplicationFactor = 3 typical (RatisConsensus needs odd quorum)",
+        "Verify even Region distribution via SHOW REGIONS — leader count per node should be ≈ total_leaders / N",
+        "If skewed: MIGRATE REGION manually or wait for next Thursday 08:00 auto-rebalance"
+      ],
+      "config_params": ["data_replication_factor", "schema_replication_factor", "data_region_consensus_protocol_class"],
+      "anomaly_classes": ["full_cpu", "full_memory", "network_bandwidth2"],
+      "iotdb_subsystems": ["Election", "Schema"],
+      "version": "all",
+      "tags": ["replication factor", "fault tolerance", "region placement"]
+    },
+    {
+      "id": "TI-CP-4",
+      "title": "Leader balance algorithm — diagnose compute-skew across DataNodes",
+      "symptom": "One DataNode persistently shows highest CPU / write latency; SHOW REGIONS shows it holding disproportionately many Leader roles",
+      "root_cause": "Leader Region handles primary write/read load; greedy leader selection can produce a locally-optimal unbalanced layout — IoTDB uses global leader balance algorithm to mitigate, but new region additions may temporarily skew",
+      "fix": [
+        "SHOW REGIONS — count Role=Leader per DataNode",
+        "Wait for next rebalance window (~Thursday 08:00) or",
+        "Manually MIGRATE REGION to move leader away",
+        "If skew persists, consider increasing DataRegionPerDataNode to give scheduler more flexibility"
+      ],
+      "config_params": ["data_region_per_data_node", "schema_region_per_data_node"],
+      "anomaly_classes": ["full_cpu", "compaction"],
+      "iotdb_subsystems": ["Election", "Schema"],
+      "version": "all",
+      "tags": ["leader balance", "compute load", "region distribution"]
+    },
+    {
+      "id": "TI-CP-5",
+      "title": "TTL-driven migration-free elastic storage",
+      "symptom": "Old data not auto-deleted; disk fills despite TTL set; manual deletion needed",
+      "root_cause": "IoTDB relies on TTL + time-partition expiration for automatic archival; if TTL not set or partition interval misconfigured, partitions linger",
+      "fix": [
+        "SET TTL TO root.<db> <ms>  — set per-database TTL",
+        "SHOW TTL  — verify",
+        "After TTL elapses, expired time partitions are reclaimed during compaction; check SHOW DISK_USAGE drop",
+        "If still not freeing space, ensure compaction is running (file_count for relevant DataRegions decreasing)"
+      ],
+      "config_params": ["enable_compaction"],
+      "anomaly_classes": ["compaction"],
+      "iotdb_subsystems": ["Compaction", "TsFile"],
+      "version": "all",
+      "tags": ["ttl", "data archival", "migration-free elastic"]
+    }
+  ]
+}

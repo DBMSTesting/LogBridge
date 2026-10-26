@@ -1,0 +1,228 @@
+{
+  "source": [
+    "docs_curated/Deployment-and-Maintenance/Environment-Requirements.md",
+    "docs_curated/Deployment-and-Maintenance/Database-Resources.md",
+    "docs_curated/Deployment-and-Maintenance/Monitoring-panel-deployment.md"
+  ],
+  "doc_type": "Deployment-and-Maintenance",
+  "extraction_method": "claude-llm-manual",
+  "schema": {
+    "id": "unique tuple id",
+    "title": "deployment / sizing topic",
+    "symptom": "trigger",
+    "root_cause": "underlying mechanism",
+    "fix": "action",
+    "config_params": "related config items",
+    "anomaly_classes": "subset of {compaction, export, flush, full_cpu, full_memory, network_bandwidth2}",
+    "iotdb_subsystems": "subset of {Flush, Compaction, MemTable, TsFile, WAL, Memory, Network, Compression, Query, Cache, Procedure, Schema, GC, Election}",
+    "version": "applicable IoTDB versions",
+    "tags": "free-form tags"
+  },
+  "tuples": [
+    {
+      "id": "DM-ENV-1",
+      "title": "RAID layout for IoTDB data disks (multi-volume parallel write)",
+      "symptom": "Sustained disk IO bottleneck (Disk Utilization % at 100% on single volume); compaction lag; write latency rises with throughput",
+      "root_cause": "Single RAID group concentrates IoTDB writes on one logical device; cannot parallelize across spindles; one disk failure blocks all I/O",
+      "fix": [
+        "Avoid single-disk-array for all disks — splits IoTDB's IO across too few volumes",
+        "Recommended: split into 1-6 disk groups for IoTDB data (each as separate volume /data1, /data2, ...)",
+        "Use RAID1 for system disk (2 disks); RAID5 in groups of 4-7 for data disks",
+        "Never use NAS / network storage — high latency under random IO",
+        "Configure IoTDB dn_data_dirs to point to the multiple volumes"
+      ],
+      "config_params": ["dn_data_dirs"],
+      "anomaly_classes": ["compaction", "flush"],
+      "iotdb_subsystems": ["TsFile", "WAL"],
+      "version": "all",
+      "tags": ["raid", "disk layout", "io throughput"]
+    },
+    {
+      "id": "DM-ENV-2",
+      "title": "Disable firewall + ensure cluster ports unblocked",
+      "symptom": "DataNode cannot join cluster; consensus group keeps timing out; replication latency huge; election storm on Ratis",
+      "root_cause": "firewalld blocks inter-node ports; missing iptables exception; required ports 10710/10720 (ConfigNode), 6667/10730/10740/10750/10760/9090/9190/3000 (DataNode) blocked",
+      "fix": [
+        "systemctl stop firewalld && systemctl disable firewalld",
+        "Or selectively open ports via iptables/firewalld rules",
+        "Verify with: lsof -i:<port>  or  netstat -tunp | grep <port>",
+        "After unblock, check election: SHOW CONFIGNODES (Leader role assigned)"
+      ],
+      "config_params": ["cn_internal_port", "dn_internal_port", "dn_data_region_consensus_port", "dn_schema_region_consensus_port"],
+      "anomaly_classes": ["network_bandwidth2"],
+      "iotdb_subsystems": ["Network", "Election"],
+      "version": "all",
+      "tags": ["firewall", "port", "cluster setup"]
+    },
+    {
+      "id": "DM-ENV-3",
+      "title": "JDK 17 recommended for V1.3.2.2+ (older JDK has perf regressions)",
+      "symptom": "DataNode cannot stop cleanly (process hangs on shutdown); periodic perf drop on older JDK; GC pauses worse than expected",
+      "root_cause": "Some performance code paths (string interning, NIO file mappings) regressed on JDK 8/11 under IoTDB workload; JDK 17 has the fixes",
+      "fix": [
+        "Install JDK 17, set JAVA_HOME and PATH",
+        "Verify with: java -version (expect 17.x)",
+        "Update IOTDB_HOME/conf/datanode-env.sh JAVA_HOME if pinned"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["full_memory", "full_cpu"],
+      "iotdb_subsystems": ["GC"],
+      "version": "V1.3.2.2+",
+      "tags": ["jdk version", "java 17", "shutdown hang"]
+    },
+    {
+      "id": "DM-DR-1",
+      "title": "Sizing CPU by number of timeseries (frequency ≤ 1 Hz)",
+      "symptom": "Sustained CPU saturation that doesn't drop after KILL QUERY; can't keep up with insert rate; chronic compaction lag",
+      "root_cause": "Under-provisioned CPU vs timeseries count; insert/query/compaction threads compete; throughput capped by CPU",
+      "fix": [
+        "Recommended CPU per node (1Hz workload):",
+        "  ≤100K series → 2-4 cores",
+        "  ≤300K → 4-8 cores",
+        "  ≤500K → 8-26 cores",
+        "  ≤1M → 16-32 cores",
+        "  ≤2M → 32-48 cores",
+        "  ≤10M → 48+ cores; >10M consult Timecho"
+      ],
+      "config_params": ["concurrent_compaction_thread", "concurrent_writing_partition_max"],
+      "anomaly_classes": ["full_cpu", "compaction"],
+      "iotdb_subsystems": ["Compaction", "Query"],
+      "version": "all",
+      "tags": ["sizing", "cpu", "capacity planning"]
+    },
+    {
+      "id": "DM-DR-2",
+      "title": "Sizing memory by number of timeseries",
+      "symptom": "OOM during MemTable flush; chronic high GC time%; queries fail with 'not enough memory'",
+      "root_cause": "Under-provisioned heap vs metadata + MemTable + cache + query temp; ConfigNode also holds partition table proportional to series count",
+      "fix": [
+        "Recommended memory per node (1Hz workload):",
+        "  ≤100K series → 2-4 GB",
+        "  ≤300K → 6-12 GB",
+        "  ≤500K → 12-24 GB",
+        "  ≤1M → 24-48 GB",
+        "  ≤2M → 48-96 GB",
+        "  ≤10M → 128 GB+",
+        "Adjust IOTDB_HEAP_SIZE in datanode-env.sh accordingly"
+      ],
+      "config_params": ["IOTDB_HEAP_SIZE", "datanode_memory_proportion", "write_memory_proportion"],
+      "anomaly_classes": ["full_memory"],
+      "iotdb_subsystems": ["Memory", "MemTable", "GC"],
+      "version": "all",
+      "tags": ["sizing", "memory", "capacity planning"]
+    },
+    {
+      "id": "DM-DR-3",
+      "title": "Sizing NIC bandwidth by write throughput",
+      "symptom": "Network bandwidth saturation visible on Network dashboard; consensus replication lag; high tail latencies for writes",
+      "root_cause": "1Gbps NIC saturates ~125MB/s of payload; high-fanout writes (replication factor × points/sec × point size) easily exceed",
+      "fix": [
+        "Write throughput < 10M points/s → 1 Gbps NIC OK",
+        "Write throughput ≥ 10M points/s → upgrade to 10 Gbps NIC",
+        "Estimate: throughput × point_size × replication_factor must fit < 0.7 × NIC bandwidth"
+      ],
+      "config_params": ["data_replication_factor"],
+      "anomaly_classes": ["network_bandwidth2"],
+      "iotdb_subsystems": ["Network"],
+      "version": "all",
+      "tags": ["sizing", "nic", "bandwidth"]
+    },
+    {
+      "id": "DM-DR-4",
+      "title": "Estimate disk space using IoTDB sizing formula",
+      "symptom": "Disk fills faster than planned; SHOW DISK_USAGE shows surprising consumption per database",
+      "root_cause": "Underestimating storage; compression ratio assumption (5-10x) varies with data type/encoding/uniqueness",
+      "fix": [
+        "Formula: points × sampling_freq_Hz × point_bytes × storage_seconds × replicas ÷ compression_ratio",
+        "Point sizes: BOOLEAN=9B, INT32/FLOAT=12B, INT64/DOUBLE=16B, TEXT=8+avg(text_bytes)B",
+        "Example: 1000 dev × 100 meas × 12B × 86400 × 365 × 3 / 10 / 1024^4 ≈ 11 TB/year",
+        "Use SSD for >10M timeseries or query-heavy workloads"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["compaction"],
+      "iotdb_subsystems": ["TsFile", "Compression"],
+      "version": "all",
+      "tags": ["disk sizing", "storage planning", "compression"]
+    },
+    {
+      "id": "DM-MON-1",
+      "title": "System Dashboard — CPU panel: System vs Process CPU Utilization",
+      "symptom": "Process CPU Utilization >80% sustained; System CPU much higher than Process CPU",
+      "root_cause": "If Process CPU is high → IoTDB internal load (compaction/query/replication); if only System CPU is high → other tenants on host",
+      "fix": [
+        "Process CPU high → check compaction queue & SHOW QUERIES for runaways",
+        "System CPU high (Process CPU low) → identify co-located workloads stealing CPU",
+        "Per-minute CPU Time helps confirm sustained vs spike load"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["full_cpu"],
+      "iotdb_subsystems": ["Compaction", "Query"],
+      "version": "enterprise / Timecho dashboard",
+      "tags": ["system dashboard", "cpu panel"]
+    },
+    {
+      "id": "DM-MON-2",
+      "title": "System Dashboard — Disk panel: file count breakdown",
+      "symptom": "TsFile / Seq / Unseq / WAL / Cross-Temp / Inner-Seq-Temp / Mods counts surging",
+      "root_cause": "Different sub-counts hint at different bottlenecks: Cross-Temp/Inner-*-Temp climbing → compaction in progress but slow; Seq+Unseq climbing → compaction lag; WAL climbing → flush back-pressure",
+      "fix": [
+        "Watch Cross-Temp and Inner-*-Temp to confirm compaction is running, not stuck",
+        "Mods accumulation → many deletions outpacing tombstone resolution",
+        "WAL count high + low Seq growth → MemTable flush stalled (heap pressure or fsync slow)"
+      ],
+      "config_params": ["concurrent_compaction_thread", "wal_throttle_threshold"],
+      "anomaly_classes": ["compaction", "flush"],
+      "iotdb_subsystems": ["TsFile", "WAL", "Compaction", "Flush"],
+      "version": "enterprise / Timecho dashboard",
+      "tags": ["disk panel", "file count breakdown", "compaction temp files"]
+    },
+    {
+      "id": "DM-MON-3",
+      "title": "System Dashboard — Disk panel: Disk I/O Latency (Avg) + Queue Length",
+      "symptom": "Disk I/O Latency (Avg) rises into hundreds of ms; Disk I/O Queue Length (Avg) consistently >1",
+      "root_cause": "Disk saturated; either by IoTDB itself or by competing process; HDD vs SSD throughput limit reached",
+      "fix": [
+        "If queue length >1 across multiple volumes → IoTDB IO bound; lower compaction throughput or add disks",
+        "If isolated to one volume → check dn_data_dirs allocation; rebalance",
+        "Consider migrating to SSD for query-heavy workloads"
+      ],
+      "config_params": ["dn_data_dirs", "concurrent_compaction_thread"],
+      "anomaly_classes": ["compaction", "flush"],
+      "iotdb_subsystems": ["TsFile", "WAL"],
+      "version": "enterprise / Timecho dashboard",
+      "tags": ["disk i/o latency", "queue length", "iostat-equivalent"]
+    },
+    {
+      "id": "DM-MON-4",
+      "title": "System Dashboard — JVM panel: GC Time Percentage + GC Events Breakdown",
+      "symptom": "GC Time Percentage > 5% sustained; FGC (Full GC) frequency rising; GC Pause Time per minute > 1 second",
+      "root_cause": "Heap too small or memory leak; high object allocation rate in MemTable / query / consensus log; concurrent collector falling behind",
+      "fix": [
+        "If only YGC frequent: increase young generation size (-XX:NewSize) or reduce allocation pressure",
+        "If FGC frequent: increase IOTDB_HEAP_SIZE; consider switching to G1GC/ZGC (datanode-env.sh)",
+        "Heap dump on next FGC: -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=..."
+      ],
+      "config_params": ["IOTDB_HEAP_SIZE"],
+      "anomaly_classes": ["full_memory", "full_cpu"],
+      "iotdb_subsystems": ["GC", "Memory"],
+      "version": "all",
+      "tags": ["jvm gc", "ygc", "fgc", "heap dump"]
+    },
+    {
+      "id": "DM-MON-5",
+      "title": "System Dashboard — Network panel: Network Speed + Active TCP Connections",
+      "symptom": "Network Speed near NIC rate; Active TCP Connections spiking abnormally",
+      "root_cause": "Either replication payload exceeds NIC, or client connection storm (no pooling), or Ratis election retry loop",
+      "fix": [
+        "If Network Speed near 1Gbps/10Gbps line: see DM-DR-3 (upgrade NIC) or reduce replication factor",
+        "If Active TCP Connections sky-high: enforce client connection pool; check for client reconnect loops",
+        "Cross-check Ratis logs for election retries — set heartbeat_interval_in_ms appropriately"
+      ],
+      "config_params": ["data_replication_factor", "heartbeat_interval_in_ms"],
+      "anomaly_classes": ["network_bandwidth2"],
+      "iotdb_subsystems": ["Network", "Election"],
+      "version": "all",
+      "tags": ["network panel", "tcp connections", "nic saturation"]
+    }
+  ]
+}

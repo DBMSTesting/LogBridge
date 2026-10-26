@@ -1,0 +1,149 @@
+{
+  "source": "docs_curated/User-Manual/Maintenance-commands_apache.md",
+  "doc_type": "User-Manual",
+  "extraction_method": "claude-llm-manual",
+  "schema": {
+    "id": "unique tuple id",
+    "title": "operational command / procedure",
+    "symptom": "observable signs that justify running it",
+    "root_cause": "underlying mechanism the command addresses",
+    "fix": "step-by-step usage",
+    "config_params": "related config items",
+    "anomaly_classes": "subset of {compaction, export, flush, full_cpu, full_memory, network_bandwidth2}",
+    "iotdb_subsystems": "subset of {Flush, Compaction, MemTable, TsFile, WAL, Memory, Network, Compression, Query, Cache, Procedure, Schema, GC, Election}",
+    "version": "applicable IoTDB versions",
+    "tags": "free-form tags for retrieval"
+  },
+  "tuples": [
+    {
+      "id": "MTN-1",
+      "title": "Manually FLUSH MemTables to disk",
+      "symptom": "MemTable size near limit; rising write latency; want to capture WAL truncation point before backup; want to test compaction pipeline",
+      "root_cause": "MemTables accumulate until size or count thresholds trigger automatic flush; manual flush forces immediate persistence",
+      "fix": [
+        "FLUSH [path1, path2, ...] [TRUE|FALSE] [ON LOCAL|CLUSTER]",
+        "TRUE = sequential only, FALSE = unsequential only, default = both",
+        "Example: FLUSH root.ln TRUE ON CLUSTER",
+        "After flush, expect file_count{name='seq'} to increase and MemTable count to drop"
+      ],
+      "config_params": ["enable_timed_flush_seq_memtable", "enable_timed_flush_unseq_memtable", "memtable_size_threshold"],
+      "anomaly_classes": ["flush", "full_memory"],
+      "iotdb_subsystems": ["Flush", "MemTable", "WAL"],
+      "version": "all",
+      "tags": ["manual flush", "memtable persistence"]
+    },
+    {
+      "id": "MTN-2",
+      "title": "START / STOP REPAIR DATA — fix timestamp disorder in TsFiles",
+      "symptom": "Out-of-order data warnings in logs; cross-space compaction failures; query results inconsistent across replicas",
+      "root_cause": "Sequential and unsequential TsFiles diverge in time ranges; corrupted or partially flushed files; mismatched indexing",
+      "fix": [
+        "START REPAIR DATA [ON LOCAL|CLUSTER] (default CLUSTER)",
+        "Pause with STOP REPAIR DATA; resume by re-issuing START",
+        "Monitor compaction dashboard: file_count of seq/unseq should converge"
+      ],
+      "config_params": ["enable_seq_space_compaction", "enable_unseq_space_compaction"],
+      "anomaly_classes": ["compaction"],
+      "iotdb_subsystems": ["Compaction", "TsFile"],
+      "version": "all",
+      "tags": ["repair", "out-of-order", "tsfile integrity"]
+    },
+    {
+      "id": "MTN-3",
+      "title": "KILL QUERY — terminate runaway queries",
+      "symptom": "SHOW QUERIES shows queries with very large elapsedtime; CPU pegged on Query-Worker threads; queries time out for other clients",
+      "root_cause": "Unbounded scan, missing time filter, or aggregating across too many devices",
+      "fix": [
+        "SHOW QUERIES WHERE elapsedtime > <seconds> — identify long-runners",
+        "KILL QUERY <queryId>  — terminate specific query",
+        "KILL ALL QUERIES — nuclear option, kills all in-flight queries",
+        "Then ask user to add time/slimit/align-by-device filters"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["full_cpu", "full_memory"],
+      "iotdb_subsystems": ["Query"],
+      "version": "all",
+      "tags": ["runaway query", "kill", "cpu pressure"]
+    },
+    {
+      "id": "MTN-4",
+      "title": "SET SYSTEM TO READONLY — emergency write halt",
+      "symptom": "Approaching disk full; WAL throttle critical; or planned maintenance window; cluster cannot accept writes safely",
+      "root_cause": "Need to prevent further data ingestion while diagnosing or recovering",
+      "fix": [
+        "SET SYSTEM TO READONLY [ON LOCAL|CLUSTER] (default CLUSTER)",
+        "Free disk / wait for compaction / repair",
+        "SET SYSTEM TO RUNNING [ON LOCAL|CLUSTER] to resume writes"
+      ],
+      "config_params": ["disk_space_warning_threshold"],
+      "anomaly_classes": ["compaction", "flush", "full_memory"],
+      "iotdb_subsystems": ["TsFile", "WAL"],
+      "version": "all",
+      "tags": ["read-only mode", "emergency stop", "disk full mitigation"]
+    },
+    {
+      "id": "MTN-5",
+      "title": "SET CONFIGURATION — hot-update config without restart",
+      "symptom": "Need to tune memory / threshold / threshold during incident; cannot afford rolling restart",
+      "root_cause": "Some IoTDB configs are hot-reloadable (memory proportions, thresholds, intervals)",
+      "fix": [
+        "SET CONFIGURATION 'key'='value' [, 'key2'='value2'] [ON <nodeId>]",
+        "Verify with SHOW VARIABLES (for cluster-scoped vars)",
+        "If hot-reload not supported for that key, the command is rejected — must edit file + restart"
+      ],
+      "config_params": ["disk_space_warning_threshold", "heartbeat_interval_in_ms", "concurrent_compaction_thread"],
+      "anomaly_classes": ["compaction", "flush", "full_memory", "full_cpu", "network_bandwidth2"],
+      "iotdb_subsystems": ["Memory", "Election"],
+      "version": "all (subset of params hot-reloadable)",
+      "tags": ["hot reload", "online config change"]
+    },
+    {
+      "id": "MTN-6",
+      "title": "SHOW DISK_USAGE — locate space hog database/region",
+      "symptom": "Disk filling up; unsure which database or region consumes most",
+      "root_cause": "Skewed device distribution or insufficient TTL pruning on a database",
+      "fix": [
+        "SHOW DISK_USAGE FROM root.**  — top-level scan",
+        "SHOW DISK_USAGE FROM root.<db>.**  — drill into specific db",
+        "Set TTL on hot databases; consider region migration off node"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["compaction"],
+      "iotdb_subsystems": ["TsFile"],
+      "version": "2.0.9-beta+",
+      "tags": ["disk usage", "capacity planning"]
+    },
+    {
+      "id": "MTN-7",
+      "title": "DEBUG SQL — capture file scan trace for slow query",
+      "symptom": "Specific query slow; metrics show high cache-miss; cannot tell which TsFiles are scanned",
+      "root_cause": "Bloom filter miss / metadata cache eviction / TsFile sealing pressure",
+      "fix": [
+        "DEBUG SELECT ...  prefix the query with DEBUG",
+        "Inspect logs/log_datanode_query_debug.log for cache-miss and file path entries",
+        "Use the file list to verify whether unexpected files are scanned (compaction missed?)"
+      ],
+      "config_params": ["chunk_metadata_cache_size_in_b", "bloom_filter_cache_size_in_b"],
+      "anomaly_classes": ["full_memory", "full_cpu"],
+      "iotdb_subsystems": ["Query", "Cache"],
+      "version": "2.0.9-beta+",
+      "tags": ["query debugging", "cache miss"]
+    },
+    {
+      "id": "MTN-8",
+      "title": "SHOW REGIONS — diagnose region distribution and leadership",
+      "symptom": "Skewed CPU / disk across DataNodes; suspected leader unbalance; planned region migration",
+      "root_cause": "Imbalanced DataRegion placement; Leader pinned on a hot node; new node added but regions not rebalanced",
+      "fix": [
+        "SHOW REGIONS — review Status, Role (Leader/Follower), TsFileSize per region",
+        "Identify hot regions and trigger MIGRATE REGION to move them",
+        "Verify status is Running, not Removing/Adding"
+      ],
+      "config_params": ["data_region_per_data_node", "schema_region_per_data_node"],
+      "anomaly_classes": ["full_cpu", "compaction", "network_bandwidth2"],
+      "iotdb_subsystems": ["Schema", "Election"],
+      "version": "all",
+      "tags": ["region distribution", "leader balance", "hotspot diagnosis"]
+    }
+  ]
+}

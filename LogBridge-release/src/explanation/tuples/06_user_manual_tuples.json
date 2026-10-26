@@ -1,0 +1,142 @@
+{
+  "source": [
+    "docs_curated/User-Manual/Load-Balance.md",
+    "docs_curated/User-Manual/Data-Recovery.md",
+    "docs_curated/User-Manual/Query-Performance-Analysis.md"
+  ],
+  "doc_type": "User-Manual",
+  "extraction_method": "claude-llm-manual",
+  "schema": {
+    "id": "unique tuple id",
+    "title": "scenario / command",
+    "symptom": "trigger condition",
+    "root_cause": "underlying mechanism",
+    "fix": "actions / commands",
+    "config_params": "related config items",
+    "anomaly_classes": "subset of {compaction, export, flush, full_cpu, full_memory, network_bandwidth2}",
+    "iotdb_subsystems": "subset of {Flush, Compaction, MemTable, TsFile, WAL, Memory, Network, Compression, Query, Cache, Procedure, Schema, GC, Election}",
+    "version": "applicable IoTDB versions",
+    "tags": "free-form tags"
+  },
+  "tuples": [
+    {
+      "id": "UM-LB-1",
+      "title": "Horizontal scaling: add DataNode to relieve cluster bottleneck",
+      "symptom": "Sustained CPU/memory/disk/network saturation across all existing DataNodes; throughput plateaus despite client retry pressure",
+      "root_cause": "Workload exceeds the throughput capacity of current DataRegionGroups; data partitions are fixed and existing nodes are saturated",
+      "fix": [
+        "Provision new node with identical OS/IoTDB version and free ports 6667/10730/10740/10750/10760/9090/9190/3000",
+        "Configure dn_seed_config_node = <primary ConfigNode internal address:port>",
+        "Start with sbin/start-datanode.sh -d, verify with SHOW DATANODES (status Running)",
+        "Note: only NEW data automatically lands on new nodes; existing data remains until manual region migration"
+      ],
+      "config_params": ["dn_seed_config_node", "dn_rpc_address", "dn_internal_address", "data_replication_factor"],
+      "anomaly_classes": ["full_cpu", "full_memory", "network_bandwidth2", "compaction"],
+      "iotdb_subsystems": ["Schema", "Election"],
+      "version": "all (2.x cluster)",
+      "tags": ["scale-out", "add datanode", "horizontal scaling"]
+    },
+    {
+      "id": "UM-LB-2",
+      "title": "MIGRATE REGION — rebalance hot DataRegion after scaling",
+      "symptom": "After adding nodes, old nodes remain hot while new nodes are idle; per-node disk usage skewed; per-node CPU/load skewed",
+      "root_cause": "IoTDB only auto-balances new data created after Thursday 08:00 reschedule; historical regions stay where they are",
+      "fix": [
+        "SHOW REGIONS — identify hot region IDs and their current DataNodes",
+        "MIGRATE REGION <regionId> FROM <srcDataNodeId> TO <dstDataNodeId>",
+        "Region goes through Adding (copy data to dst) → Removing (delete data from src) states",
+        "Migration time ≈ region data size ÷ network transfer rate (e.g. 1TB at 100MB/s ≈ 3 hr)",
+        "Migrate one region at a time to avoid network/CPU stampede"
+      ],
+      "config_params": ["data_region_per_data_node", "schema_region_per_data_node"],
+      "anomaly_classes": ["full_cpu", "compaction", "network_bandwidth2"],
+      "iotdb_subsystems": ["Schema", "Election", "Network"],
+      "version": "all",
+      "tags": ["region migration", "rebalance", "hotspot fix"]
+    },
+    {
+      "id": "UM-LB-3",
+      "title": "REMOVE / re-add CONFIGNODE — keep ConfigNode quorum at 1 or 3",
+      "symptom": "ConfigNode count is 2 (no HA) or >3 (performance degradation); ConfigNode-leader election unstable; cluster meta operations slow",
+      "root_cause": "ConfigNode Ratis group requires odd-numbered membership for clean majority; 2 nodes cannot tolerate a single failure",
+      "fix": [
+        "SHOW CONFIGNODES — list NodeIDs and roles",
+        "REMOVE CONFIGNODE <id>  — drop excess or faulty node",
+        "Start replacement via sbin/start-confignode.sh on a new host",
+        "Verify final count is exactly 1 (single-node) or 3 (HA cluster)"
+      ],
+      "config_params": ["cn_internal_address", "cn_internal_port"],
+      "anomaly_classes": ["network_bandwidth2"],
+      "iotdb_subsystems": ["Election"],
+      "version": "all (2.x cluster)",
+      "tags": ["confignode quorum", "ha", "ratis"]
+    },
+    {
+      "id": "UM-DR-1",
+      "title": "START / STOP REPAIR DATA — fix bad TsFiles with out-of-order data",
+      "symptom": "Logs show sequential-space files containing out-of-order timestamps; cross-space compaction fails; query results diverge across replicas",
+      "root_cause": "Sequential TsFiles got corrupted (crash before flush completion, clock skew on insert) and now violate sequentiality invariant; compaction cannot proceed",
+      "fix": [
+        "START REPAIR DATA [ON LOCAL|CLUSTER] — scans all pre-existing TsFiles and repairs bad ones in background",
+        "STOP REPAIR DATA to pause; START again to resume from checkpoint",
+        "Watch compaction dashboard: seq/unseq counts should converge as repair progresses",
+        "Best run during low-traffic window — repair competes with normal compaction for IO"
+      ],
+      "config_params": ["enable_seq_space_compaction", "enable_unseq_space_compaction"],
+      "anomaly_classes": ["compaction"],
+      "iotdb_subsystems": ["Compaction", "TsFile"],
+      "version": "all",
+      "tags": ["repair", "out-of-order", "tsfile recovery"]
+    },
+    {
+      "id": "UM-QPA-1",
+      "title": "EXPLAIN — preview distribution plan to diagnose query design issues",
+      "symptom": "Slow query but unclear which operator is expensive; want to validate filter pushdown / partition routing before running",
+      "root_cause": "Some queries fan out across many DataRegions (poor partition pruning); ORDER BY / GROUP BY may force sort with insufficient memory",
+      "fix": [
+        "EXPLAIN <SELECT_STATEMENT> — returns tree of operators (SeriesScan, FullOuterTimeJoin, Sort, etc.) and per-fragment partition assignment",
+        "Look for: many SeriesScan-N nodes (wide fan-out), missing time filter (no Partition narrowing), giant Sort/Aggregate nodes",
+        "Rewrite query: add time filter, use slimit, align by device, or reduce metric count"
+      ],
+      "config_params": [],
+      "anomaly_classes": ["full_cpu", "full_memory"],
+      "iotdb_subsystems": ["Query"],
+      "version": "V1.3.2+",
+      "tags": ["explain", "query plan", "preview"]
+    },
+    {
+      "id": "UM-QPA-2",
+      "title": "EXPLAIN ANALYZE [VERBOSE] — profile actual query execution with per-operator costs",
+      "symptom": "Need to know exact CPU/IO breakdown of a slow query; need TsFile-level scan counts; query timed out and need post-mortem",
+      "root_cause": "Without runtime statistics, cannot isolate whether bottleneck is in SeriesScan (file IO/cache), Sort (memory), TimeJoin (cross-region) etc.",
+      "fix": [
+        "EXPLAIN ANALYZE <SELECT_STATEMENT>  — runs the query and collects per-PlanNode stats (CPU Time, output rows, memory)",
+        "Add VERBOSE for full operator detail",
+        "Inspect: Total Wall Time, Seq/UnSeq File counts (compaction state), CPU Time per PlanNode (find bottleneck node)",
+        "If query timed out, read logs/log_explain_analyze.log — Explain Analyze writes interim snapshots so even timeouts are debuggable",
+        "Tune merge_threshold_of_explain_analyze (hot-reloadable) when many similar nodes flood output"
+      ],
+      "config_params": ["merge_threshold_of_explain_analyze"],
+      "anomaly_classes": ["full_cpu", "full_memory", "compaction"],
+      "iotdb_subsystems": ["Query", "Cache", "TsFile"],
+      "version": "V1.3.2+",
+      "tags": ["explain analyze", "query profiling", "post-mortem"]
+    },
+    {
+      "id": "UM-QPA-3",
+      "title": "Detect compaction-induced slow reads via EXPLAIN ANALYZE",
+      "symptom": "Specific query has High Seq File(closed) count or unusually large UnSeq File count in EXPLAIN ANALYZE output; per-fragment Wall Time spent in initDataQuerySource",
+      "root_cause": "Many small TsFiles → many SeriesScan instances → slow file open / metadata load; symptom of compaction backlog",
+      "fix": [
+        "If EXPLAIN ANALYZE shows e.g. 'Seq File(closed): 50+' for one Fragment, that DataRegion has compaction lag",
+        "Cross-check Storage Engine dashboard file_count metric",
+        "Trigger START REPAIR DATA if out-of-order; otherwise wait for compaction or raise concurrent_compaction_thread"
+      ],
+      "config_params": ["concurrent_compaction_thread", "target_compaction_file_size"],
+      "anomaly_classes": ["compaction", "full_cpu"],
+      "iotdb_subsystems": ["Compaction", "Query", "TsFile"],
+      "version": "V1.3.2+",
+      "tags": ["compaction lag detection", "explain analyze"]
+    }
+  ]
+}
